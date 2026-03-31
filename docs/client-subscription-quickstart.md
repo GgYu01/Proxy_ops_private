@@ -105,6 +105,36 @@ https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_no
 - `infra-core` 自己的 sidecar 会按这个顺序做主备切换。
 - 客户端订阅看到的是多个节点；客户端侧是否自动切换，取决于客户端自身能力和你选择的模式。
 
+## 为什么 Hiddify 默认是 Lisa
+
+当前 `v2ray_nodes.txt` 的顺序是：
+
+1. `GG-Lisa-Stable`
+2. `GG-Dedirock`
+3. `GG-Akile`
+
+Hiddify 导入订阅后，常见表现是先把第一个节点当成当前默认节点，所以你第一次看到的是 `Lisa`。
+
+这和 `infra-core` 的主备优先级并不冲突：
+
+- `infra-core` sidecar 的默认主备本来就先走 `Lisahost`
+- 客户端订阅文件目前也把 `Lisa` 放在第一位
+
+## Hiddify 里怎么切换节点
+
+1. 打开 Hiddify。
+2. 进入当前订阅下的节点列表。
+3. 先执行一次延迟测试。
+4. 直接点选你要使用的节点，例如：
+   - `GG-Dedirock`
+   - `GG-Akile`
+5. 连接后再做一次出口验证。
+
+如果你想“每次导入后默认就不是 Lisa”，那要改的是订阅生成逻辑，不是客户端点选方式：
+
+- 要么调整 `v2ray_nodes.txt` 的节点顺序
+- 要么后续把客户端订阅做成更明确的分组/自动选择模型
+
 ## 一个容易误判的点
 
 `infra-core` 当前是规则分流，不是“所有流量都强制走远端代理”。
