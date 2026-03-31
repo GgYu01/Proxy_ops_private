@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 
+
 def load_env_file(filepath):
     config = {}
     if os.path.exists(filepath):
@@ -12,6 +13,29 @@ def load_env_file(filepath):
                     key, _, value = line.partition('=')
                     config[key.strip()] = value.strip()
     return config
+
+
+def parse_reality_dest(dest_value, default_port=443):
+    dest = (dest_value or '').strip()
+    if not dest:
+        return 'www.microsoft.com', default_port
+
+    if dest.startswith('['):
+        end = dest.find(']')
+        if end != -1:
+            host = dest[1:end]
+            rest = dest[end + 1:]
+            if rest.startswith(':') and rest[1:].isdigit():
+                return host, int(rest[1:])
+            return host, default_port
+
+    if dest.count(':') == 1:
+        host, port = dest.rsplit(':', 1)
+        if port.isdigit():
+            return host, int(port)
+
+    return dest, default_port
+
 
 def main():
     config = load_env_file('config.env')
@@ -30,6 +54,7 @@ def main():
     reality_short_id = config.get('REALITY_SHORT_ID', '')
     reality_dest = config.get('REALITY_DEST', 'www.microsoft.com:443')
     reality_sn = config.get('REALITY_SERVER_NAMES', 'www.microsoft.com').split(',')
+    reality_host, reality_port = parse_reality_dest(reality_dest)
 
     # Validation: If Reality is enabled (implied by default), check for Private Key
     # We allow reality_priv to be empty ONLY if we fall back to a non-Reality config, 
@@ -93,8 +118,8 @@ def main():
                     "reality": {
                         "enabled": True,
                         "handshake": {
-                            "server": reality_dest,
-                            "server_port": 443
+                            "server": reality_host,
+                            "server_port": reality_port
                         },
                         "private_key": reality_priv,
                         "short_id": [reality_short_id]

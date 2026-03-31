@@ -13,15 +13,19 @@ fi
 
 if [ "$IS_ROOT" -eq 1 ]; then
     SYSTEMD_DIR="/etc/containers/systemd"
+    FALLBACK_DIR="/etc/systemd/system"
     SYSTEMCTL_CMD="systemctl"
     WANTED_BY_TARGET="multi-user.target"
     echo "ℹ️  Running as ROOT. Using system-wide Quadlet dir: $SYSTEMD_DIR"
 else
     SYSTEMD_DIR="$HOME/.config/containers/systemd"
+    FALLBACK_DIR="$HOME/.config/systemd/user"
     SYSTEMCTL_CMD="systemctl --user"
     WANTED_BY_TARGET="default.target"
     echo "ℹ️  Running as USER. Using user-scope Quadlet dir: $SYSTEMD_DIR"
 fi
+
+PODMAN_SYSTEM_GENERATOR_BIN=${PODMAN_SYSTEM_GENERATOR_BIN:-/usr/lib/systemd/system-generators/podman-system-generator}
 
 if [ -f config.env ]; then
     set -a
@@ -65,6 +69,67 @@ EOF
 )
 fi
 
+quadlet_fragment_path() {
+    local fragment_path=""
+
+    # shellcheck disable=SC2086
+    fragment_path=$($SYSTEMCTL_CMD show --property=FragmentPath --value remote-proxy.service 2>/dev/null || true)
+    printf '%s' "$fragment_path" | tr -d '\r'
+}
+
+quadlet_service_generated() {
+    local fragment_path
+    fragment_path="$(quadlet_fragment_path)"
+
+    case "$fragment_path" in
+        /run/systemd/generator/*|/run/systemd/generator.late/*|/run/user/*/systemd/generator/*|/run/user/*/systemd/generator.late/*)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+wait_for_quadlet_generation() {
+    local max_checks=$1
+    local i=0
+
+    while [ "$i" -lt "$max_checks" ]; do
+        if quadlet_service_generated; then
+            echo "✅ Service detected (Quadlet): $(quadlet_fragment_path)"
+            return 0
+        fi
+        i=$((i + 1))
+        echo "   Waiting for generator... ($i/$max_checks)"
+        sleep 1
+    done
+
+    return 1
+}
+
+print_quadlet_debug() {
+    echo "1. Quadlet File Content:"
+    cat "$SYSTEMD_DIR/remote-proxy.container"
+    echo "2. Quadlet FragmentPath:"
+    echo "$(quadlet_fragment_path)"
+    echo "3. Generator Output (dryrun if available):"
+    if [ -x "$PODMAN_SYSTEM_GENERATOR_BIN" ]; then
+        QUADLET_UNIT_DIRS="$SYSTEMD_DIR" "$PODMAN_SYSTEM_GENERATOR_BIN" --dryrun 2>&1 || true
+    else
+        echo "podman-system-generator not found"
+    fi
+    echo "4. Recent generator logs:"
+    journalctl -b --no-pager -n 50 2>&1 | grep -E 'quadlet-generator|podman-system-generator' || true
+}
+
+quadlet_dryrun_generates_service() {
+    if [ ! -x "$PODMAN_SYSTEM_GENERATOR_BIN" ]; then
+        return 1
+    fi
+
+    QUADLET_UNIT_DIRS="$SYSTEMD_DIR" "$PODMAN_SYSTEM_GENERATOR_BIN" --dryrun 2>&1 | grep -q -- '---remote-proxy.service---'
+}
+
 mkdir -p "$SYSTEMD_DIR"
 rm -f "$SYSTEMD_DIR/remote-proxy.container"
 
@@ -84,36 +149,37 @@ PublishPort=$((${BASE_PORT}+1)):$((${BASE_PORT}+1))
 PublishPort=$((${BASE_PORT}+2)):$((${BASE_PORT}+2))
 PublishPort=$((${BASE_PORT}+3)):$((${BASE_PORT}+3))
 PublishPort=$((${BASE_PORT}+4)):$((${BASE_PORT}+4))
-Memory=${MEMORY_LIMIT}
+PodmanArgs=--memory ${MEMORY_LIMIT}
 Exec=run -c /etc/sing-box/config.json
 
 [Service]
 Restart=always
 TimeoutStartSec=900
+
+[Install]
+WantedBy=${WANTED_BY_TARGET}
 EOF
 
 echo ">>> Reloading Systemd..."
 $SYSTEMCTL_CMD daemon-reload
 
+if [ -f "$FALLBACK_DIR/remote-proxy.service" ] && quadlet_dryrun_generates_service; then
+    echo ">>> Quadlet dry-run succeeded. Removing stale fallback unit at $FALLBACK_DIR/remote-proxy.service"
+    rm -f "$FALLBACK_DIR/remote-proxy.service"
+    echo ">>> Reloading Systemd after stale fallback cleanup..."
+    $SYSTEMCTL_CMD daemon-reload
+fi
+
 echo ">>> Verifying Service Generation..."
-GENERATED=0
 MAX_CHECKS=5
-for ((i=1; i<=MAX_CHECKS; i++)); do
-    if $SYSTEMCTL_CMD list-unit-files remote-proxy.service | grep -q "remote-proxy.service"; then
-        echo "✅ Service detected (Quadlet)."
-        GENERATED=1
-        break
-    fi
-    echo "   Waiting for generator... ($i/$MAX_CHECKS)"
-    sleep 1
-done
-
-if [ "$GENERATED" -eq 0 ]; then
+DEPLOY_MODE="quadlet"
+if ! wait_for_quadlet_generation "$MAX_CHECKS"; then
     echo "⚠️  Quadlet generation failed. Falling back to standard Systemd Unit."
+    DEPLOY_MODE="fallback"
+fi
 
-    if [ "$IS_ROOT" -eq 1 ]; then
-        FALLBACK_DIR="/etc/systemd/system"
-    else
+if [ "$DEPLOY_MODE" = "fallback" ]; then
+    if [ "$IS_ROOT" -eq 0 ]; then
         FALLBACK_DIR="$HOME/.config/systemd/user"
         mkdir -p "$FALLBACK_DIR"
     fi
@@ -146,12 +212,15 @@ EOF
 fi
 
 echo ">>> Starting Service..."
-if ! $SYSTEMCTL_CMD enable --now remote-proxy; then
+if [ "$DEPLOY_MODE" = "fallback" ] && ! $SYSTEMCTL_CMD enable remote-proxy; then
     echo "❌ Failed to enable service. Debugging info:"
-    echo "1. Quadlet File Content:"
-    cat "$SYSTEMD_DIR/remote-proxy.container"
-    echo "2. Generator Logs:"
-    journalctl -t podman-system-generator -n 20 --no-pager
+    print_quadlet_debug
+    exit 1
+fi
+
+if ! $SYSTEMCTL_CMD restart remote-proxy; then
+    echo "❌ Failed to restart service. Debugging info:"
+    print_quadlet_debug
     exit 1
 fi
 

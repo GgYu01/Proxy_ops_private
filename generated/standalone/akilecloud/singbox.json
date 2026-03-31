@@ -66,7 +66,7 @@
         "reality": {
           "enabled": true,
           "handshake": {
-            "server": "www.microsoft.com:443",
+            "server": "www.microsoft.com",
             "server_port": 443
           },
           "private_key": "SArRPJ3YDYiJ5BYL0zV_9hvr2oJX2MYwPwpcbhadlk4",
