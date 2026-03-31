@@ -1,0 +1,6 @@
+{
+  "name": "GG Proxy Nodes Remote",
+  "url": "https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/singbox-client-profile.json",
+  "update_interval_hours": 12,
+  "deeplink": "sing-box://import-remote-profile?url=https%3A%2F%2Fproxy-subscriptions.svc.prod.lab.gglohh.top%3A27111%2Fsubscriptions%2Fsingbox-client-profile.json#GG%20Proxy%20Nodes%20Remote"
+}

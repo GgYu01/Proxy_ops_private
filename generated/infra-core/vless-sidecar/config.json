@@ -1,0 +1,237 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "remote_doh_cf",
+        "address": "https://1.1.1.1/dns-query",
+        "detour": "proxy_failover"
+      },
+      {
+        "tag": "remote_dot_cf",
+        "address": "tls://1.1.1.1",
+        "detour": "proxy_failover"
+      },
+      {
+        "tag": "remote_doh_cf_secondary",
+        "address": "https://1.0.0.1/dns-query",
+        "detour": "proxy_failover"
+      },
+      {
+        "tag": "local",
+        "address": "223.5.5.5",
+        "detour": "direct"
+      }
+    ],
+    "rules": [
+      {
+        "domain_suffix": [
+          "cloudcode-pa.googleapis.com",
+          "daily-cloudcode-pa.googleapis.com",
+          "oauth2.googleapis.com",
+          "accounts.google.com",
+          "www.googleapis.com",
+          "googleapis.com",
+          "google.com",
+          "googleusercontent.com",
+          "gstatic.com",
+          "gvt1.com",
+          "anthropic.com",
+          "claude.ai",
+          "claudeusercontent.com",
+          "openai.com",
+          "api.openai.com",
+          "auth.openai.com",
+          "platform.openai.com",
+          "chatgpt.com",
+          "oaistatic.com",
+          "oaiusercontent.com"
+        ],
+        "server": "remote_doh_cf"
+      },
+      {
+        "domain_suffix": [
+          "svc.prod.lab.gglohh.top"
+        ],
+        "server": "local"
+      },
+      {
+        "outbound": "any",
+        "server": "remote_doh_cf"
+      }
+    ],
+    "final": "remote_doh_cf"
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "interface_name": "tun0",
+      "inet4_address": "172.19.0.1/30",
+      "auto_route": true,
+      "strict_route": true,
+      "stack": "system",
+      "sniff": true,
+      "mtu": 1280
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "proxy_lisahost",
+      "server": "38.34.8.59",
+      "server_port": 10003,
+      "uuid": "5be04bd0-6f4b-4049-a5b7-414176753a51",
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "G5mH1KsIAb4JxYRBnrC1TIQhOcRp8GHlxa25LfhvvhY",
+          "short_id": "697399025775544e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "proxy_akilecloud",
+      "server": "154.83.94.182",
+      "server_port": 10003,
+      "uuid": "1756ba05-2924-4385-8090-91f087d225be",
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "K0Ru74p5Pw6uL5MHLIl6LXqFxb9OU5_bFy0B70ea0GY",
+          "short_id": "df1667d19fe3d01c"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "proxy_dedirock",
+      "server": "67.215.238.140",
+      "server_port": 10003,
+      "uuid": "a6b593d0-4c12-426d-bf59-981161d13262",
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI",
+          "short_id": "38b9604a52692bd9"
+        }
+      }
+    },
+    {
+      "type": "selector",
+      "tag": "proxy_failover",
+      "outbounds": [
+        "proxy_lisahost",
+        "proxy_akilecloud",
+        "proxy_dedirock"
+      ],
+      "default": "proxy_lisahost",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "ip_is_private": true,
+        "outbound": "direct"
+      },
+      {
+        "port": 53,
+        "outbound": "direct"
+      },
+      {
+        "port": 853,
+        "outbound": "direct"
+      },
+      {
+        "domain_suffix": [
+          "svc.prod.lab.gglohh.top"
+        ],
+        "outbound": "direct"
+      },
+      {
+        "ip_cidr": [
+          "38.34.8.59/32",
+          "154.83.94.182/32",
+          "67.215.238.140/32"
+        ],
+        "outbound": "direct"
+      },
+      {
+        "domain_suffix": [
+          "cloudcode-pa.googleapis.com",
+          "daily-cloudcode-pa.googleapis.com",
+          "oauth2.googleapis.com",
+          "accounts.google.com",
+          "www.googleapis.com",
+          "googleapis.com",
+          "google.com",
+          "googleusercontent.com",
+          "gstatic.com",
+          "gvt1.com",
+          "anthropic.com",
+          "claude.ai",
+          "claudeusercontent.com",
+          "openai.com",
+          "api.openai.com",
+          "auth.openai.com",
+          "platform.openai.com",
+          "chatgpt.com",
+          "oaistatic.com",
+          "oaiusercontent.com"
+        ],
+        "outbound": "proxy_failover"
+      },
+      {
+        "domain_keyword": [
+          "cloudcode",
+          "googleapis",
+          "oauth2",
+          "google",
+          "anthropic",
+          "claude",
+          "openai",
+          "codex",
+          "chatgpt",
+          "oaistatic",
+          "oai"
+        ],
+        "outbound": "proxy_failover"
+      }
+    ],
+    "auto_detect_interface": true,
+    "final": "direct"
+  }
+}

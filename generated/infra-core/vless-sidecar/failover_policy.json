@@ -1,0 +1,32 @@
+{
+  "selector_tag": "proxy_failover",
+  "default_tag": "proxy_lisahost",
+  "probe_url": "http://www.gstatic.com/generate_204",
+  "probe_timeout_seconds": 8,
+  "priority": [
+    {
+      "tag": "proxy_lisahost",
+      "name": "lisahost",
+      "host": "38.34.8.59",
+      "http_port": 10001,
+      "proxy_user": "admin",
+      "proxy_pass": "Aa123456"
+    },
+    {
+      "tag": "proxy_akilecloud",
+      "name": "akilecloud",
+      "host": "154.83.94.182",
+      "http_port": 10001,
+      "proxy_user": "admin",
+      "proxy_pass": "password123"
+    },
+    {
+      "tag": "proxy_dedirock",
+      "name": "dedirock",
+      "host": "67.215.238.140",
+      "http_port": 10001,
+      "proxy_user": "admin",
+      "proxy_pass": "password123"
+    }
+  ]
+}

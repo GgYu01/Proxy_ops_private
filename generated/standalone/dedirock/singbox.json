@@ -1,0 +1,102 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8"
+      },
+      {
+        "tag": "local",
+        "address": "local"
+      }
+    ],
+    "strategy": "ipv4_only"
+  },
+  "inbounds": [
+    {
+      "type": "socks",
+      "tag": "socks-in",
+      "listen": "::",
+      "listen_port": 10000,
+      "users": [
+        {
+          "username": "admin",
+          "password": "password123"
+        }
+      ]
+    },
+    {
+      "type": "http",
+      "tag": "http-in",
+      "listen": "::",
+      "listen_port": 10001,
+      "users": [
+        {
+          "username": "admin",
+          "password": "password123"
+        }
+      ]
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "ss-in",
+      "listen": "::",
+      "listen_port": 10002,
+      "method": "chacha20-ietf-poly1305",
+      "password": "secret_ss_password"
+    },
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "::",
+      "listen_port": 10003,
+      "users": [
+        {
+          "uuid": "a6b593d0-4c12-426d-bf59-981161d13262",
+          "flow": "xtls-rprx-vision"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "www.microsoft.com:443",
+            "server_port": 443
+          },
+          "private_key": "uNqe7d0c9dUCO9fLYe1NB6XzAYMIZYMzkf28IFB8nEA",
+          "short_id": [
+            "38b9604a52692bd9"
+          ]
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "trojan-in",
+      "listen": "::",
+      "listen_port": 10004,
+      "users": [
+        {
+          "password": "password123"
+        }
+      ]
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct",
+      "domain_strategy": "ipv4_only"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ]
+}

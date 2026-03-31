@@ -1,0 +1,7 @@
+{
+  "profile_name": "GG Proxy Nodes",
+  "subscription_base_url": "https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions",
+  "hiddify_fragment_name": "GG Proxy Nodes",
+  "remote_profile_name": "GG Proxy Nodes Remote",
+  "update_interval_hours": 12
+}

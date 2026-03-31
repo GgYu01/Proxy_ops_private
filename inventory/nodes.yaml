@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "name": "lisahost",
+      "host": "38.34.8.59",
+      "ssh_port": 27823,
+      "base_port": 10000,
+      "subscription_alias": "GG-Lisa-Stable",
+      "enabled": true,
+      "infra_core_candidate": true,
+      "change_policy": "frozen",
+      "provider": "Lisahost"
+    },
+    {
+      "name": "dedirock",
+      "host": "67.215.238.140",
+      "ssh_port": 22,
+      "base_port": 10000,
+      "subscription_alias": "GG-Dedirock",
+      "enabled": true,
+      "infra_core_candidate": true,
+      "change_policy": "mutable",
+      "provider": "dedirock"
+    },
+    {
+      "name": "akilecloud",
+      "host": "154.83.94.182",
+      "ssh_port": 22,
+      "base_port": 10000,
+      "subscription_alias": "GG-Akile",
+      "enabled": true,
+      "infra_core_candidate": true,
+      "change_policy": "mutable",
+      "provider": "akilecloud"
+    }
+  ]
+}
