@@ -24,8 +24,19 @@ This repository is the private source of truth for:
 - `inventory/`: node metadata and publication settings
 - `secrets/nodes/`: per-node fixed secret inputs
 - `generated/`: generated subscriptions and `infra-core` config
+- `docs/`: current deployment quickstarts and operator-facing notes
 - `scripts/`: local render/apply/check tooling
 - `tests/`: local unit tests for inventory and generated outputs
+
+## Current Client Entry
+
+If you need the current authoritative client usage for the deployed
+subscription service, read:
+
+- `docs/client-subscription-quickstart.md`
+
+That document is the current truth for Windows / Linux / Android subscription
+import. It takes priority over old standalone `show_info.sh` usage notes.
 
 ## Verification
 
