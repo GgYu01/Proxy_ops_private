@@ -46,6 +46,17 @@ def build_node_models(repo_root: Path) -> list[dict]:
     return nodes
 
 
+def enabled_nodes(repo_root: Path) -> list[dict]:
+    return [node for node in build_node_models(repo_root) if node.get("enabled")]
+
+
+def enabled_node_by_name(repo_root: Path, node_name: str) -> dict:
+    for node in enabled_nodes(repo_root):
+        if node["name"] == node_name:
+            return node
+    raise KeyError(f"Unknown enabled node: {node_name}")
+
+
 def first_server_name(node: dict) -> str:
     names = node["secrets"]["REALITY_SERVER_NAMES"].split(",")
     return names[0].strip()
@@ -67,15 +78,29 @@ def vless_link(node: dict) -> str:
     )
 
 
-def render_v2ray_subscription(repo_root: Path = REPO_ROOT) -> str:
-    nodes = [node for node in build_node_models(repo_root) if node.get("enabled")]
+def single_node_subscription_filename(node_name: str) -> str:
+    return f"v2ray_node_{node_name}.txt"
+
+
+def single_node_hiddify_import_filename(node_name: str) -> str:
+    return f"hiddify_import_{node_name}.txt"
+
+
+def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None = None) -> str:
+    nodes = enabled_nodes(repo_root) if node_name is None else [enabled_node_by_name(repo_root, node_name)]
     return "\n".join(vless_link(node) for node in nodes) + "\n"
 
 
-def render_hiddify_import(repo_root: Path = REPO_ROOT) -> str:
+def render_hiddify_import(repo_root: Path = REPO_ROOT, node_name: str | None = None) -> str:
     subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
-    subscription_url = subscriptions["subscription_base_url"].rstrip("/") + "/v2ray_nodes.txt"
-    profile_name = subscriptions["hiddify_fragment_name"]
+    base_url = subscriptions["subscription_base_url"].rstrip("/")
+    if node_name is None:
+        subscription_url = base_url + "/v2ray_nodes.txt"
+        profile_name = subscriptions["hiddify_fragment_name"]
+    else:
+        node = enabled_node_by_name(repo_root, node_name)
+        subscription_url = base_url + f"/{single_node_subscription_filename(node_name)}"
+        profile_name = node["subscription_alias"]
     return f"hiddify://import/{subscription_url}#{urllib.parse.quote(profile_name)}\n"
 
 
@@ -199,6 +224,15 @@ def write_text(path: Path, content: str) -> None:
 def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
     write_text(repo_root / "generated" / "subscriptions" / "v2ray_nodes.txt", render_v2ray_subscription(repo_root))
     write_text(repo_root / "generated" / "subscriptions" / "hiddify_import.txt", render_hiddify_import(repo_root))
+    for node in enabled_nodes(repo_root):
+        write_text(
+            repo_root / "generated" / "subscriptions" / single_node_subscription_filename(node["name"]),
+            render_v2ray_subscription(repo_root, node_name=node["name"]),
+        )
+        write_text(
+            repo_root / "generated" / "subscriptions" / single_node_hiddify_import_filename(node["name"]),
+            render_hiddify_import(repo_root, node_name=node["name"]),
+        )
     singbox_manifest = render_singbox_remote_profile(repo_root)
     write_text(repo_root / "generated" / "subscriptions" / "singbox-client-profile.json", singbox_manifest)
     write_text(repo_root / "generated" / "subscriptions" / "singbox_remote_profile.json", render_singbox_remote_profile(repo_root))

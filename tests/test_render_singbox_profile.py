@@ -37,6 +37,18 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "singbox-client-profile.json").exists())
         self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "singbox_remote_profile.json").exists())
 
+    def test_generated_artifacts_include_single_node_subscription_variants(self) -> None:
+        render_artifacts = load_module()
+
+        render_artifacts.write_generated_artifacts(REPO_ROOT)
+
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "v2ray_node_lisahost.txt").exists())
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "v2ray_node_akilecloud.txt").exists())
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "v2ray_node_dedirock.txt").exists())
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "hiddify_import_lisahost.txt").exists())
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "hiddify_import_akilecloud.txt").exists())
+        self.assertTrue((REPO_ROOT / "generated" / "subscriptions" / "hiddify_import_dedirock.txt").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

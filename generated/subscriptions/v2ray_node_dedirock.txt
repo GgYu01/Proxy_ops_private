@@ -1,0 +1,1 @@
+vless://a6b593d0-4c12-426d-bf59-981161d13262@67.215.238.140:10003?security=reality&encryption=none&pbk=R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=38b9604a52692bd9#GG-Dedirock

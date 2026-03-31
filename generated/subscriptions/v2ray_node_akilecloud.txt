@@ -1,0 +1,1 @@
+vless://1756ba05-2924-4385-8090-91f087d225be@154.83.94.182:10003?security=reality&encryption=none&pbk=K0Ru74p5Pw6uL5MHLIl6LXqFxb9OU5_bFy0B70ea0GY&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=df1667d19fe3d01c#GG-Akile

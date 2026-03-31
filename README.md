@@ -23,7 +23,7 @@ This repository is the private source of truth for:
 
 - `inventory/`: node metadata and publication settings
 - `secrets/nodes/`: per-node fixed secret inputs
-- `generated/`: generated subscriptions and `infra-core` config
+- `generated/`: generated multi-node subscriptions, single-node subscriptions, and `infra-core` config
 - `docs/`: current deployment quickstarts and operator-facing notes
 - `scripts/`: local render/apply/check tooling
 - `tests/`: local unit tests for inventory and generated outputs

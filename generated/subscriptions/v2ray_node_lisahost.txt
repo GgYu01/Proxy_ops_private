@@ -1,0 +1,1 @@
+vless://5be04bd0-6f4b-4049-a5b7-414176753a51@38.34.8.59:10003?security=reality&encryption=none&pbk=G5mH1KsIAb4JxYRBnrC1TIQhOcRp8GHlxa25LfhvvhY&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=697399025775544e#GG-Lisa-Stable

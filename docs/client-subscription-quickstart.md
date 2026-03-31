@@ -12,10 +12,18 @@
 
 ## 当前权威入口
 
-- 主订阅 URL：
+- 多节点总订阅 URL：
   - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt`
-- Hiddify 一键导入：
+- 多节点 Hiddify 一键导入：
   - `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt#GG%20Proxy%20Nodes`
+- 单节点锁定 URL：
+  - `Lisahost`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt`
+  - `Akilecloud`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt`
+  - `Dedirock`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt`
+- 单节点 Hiddify 一键导入：
+  - `Lisahost`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt#GG-Lisa-Stable`
+  - `Akilecloud`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt#GG-Akile`
+  - `Dedirock`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt#GG-Dedirock`
 - sing-box 辅助清单：
   - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/singbox-client-profile.json`
 
@@ -43,6 +51,12 @@ hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subsc
 3. 在客户端里更新订阅。
 4. 选择你要使用的节点。
 
+如果你不想导入后默认先落在 `Lisa`，不要用上面的多节点导入，直接改用对应的单节点 Hiddify 链接：
+
+```text
+hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt#GG-Akile
+```
+
 ### 备用方式
 
 如果你使用 `v2rayN`，把下面这条作为订阅 URL 导入：
@@ -62,6 +76,8 @@ https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_no
 1. 安装 Hiddify。
 2. 导入同一条 Hiddify 链接，或者直接导入订阅 URL。
 3. 更新订阅并选择节点。
+
+如果你想固定到某个节点，不想每次手工点选，直接导入对应的单节点 URL 即可。
 
 ### 备用方式
 
@@ -87,6 +103,8 @@ hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subsc
 ```
 
 3. 更新订阅并选择节点。
+
+如果你要固定到 `Akilecloud` 或 `Dedirock`，直接改用对应的单节点 Hiddify 链接，不要再先导入多节点总订阅。
 
 ### 备用方式
 
@@ -122,18 +140,26 @@ Hiddify 导入订阅后，常见表现是先把第一个节点当成当前默认
 
 ## Hiddify 里怎么切换节点
 
+### 方式 1：继续使用多节点总订阅
+
 1. 打开 Hiddify。
 2. 进入当前订阅下的节点列表。
 3. 先执行一次延迟测试。
-4. 直接点选你要使用的节点，例如：
-   - `GG-Dedirock`
-   - `GG-Akile`
+4. 直接点选你要使用的节点，例如 `GG-Dedirock` 或 `GG-Akile`。
 5. 连接后再做一次出口验证。
 
-如果你想“每次导入后默认就不是 Lisa”，那要改的是订阅生成逻辑，不是客户端点选方式：
+### 方式 2：直接导入单节点订阅
 
-- 要么调整 `v2ray_nodes.txt` 的节点顺序
-- 要么后续把客户端订阅做成更明确的分组/自动选择模型
+如果你不想每次手工点选，直接导入对应的单节点链接：
+
+- `Lisahost`
+  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt`
+- `Akilecloud`
+  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt`
+- `Dedirock`
+  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt`
+
+这样导入后，客户端里只有一个节点，不会再先默认落到 `Lisa`。
 
 ## 一个容易误判的点
 

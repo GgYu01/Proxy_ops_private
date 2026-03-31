@@ -29,6 +29,16 @@ class V2RayRenderTests(unittest.TestCase):
         self.assertIn("GG-Akile", artifact)
         self.assertEqual(3, sum(1 for line in artifact.splitlines() if line.startswith("vless://")))
 
+    def test_single_node_subscription_contains_only_requested_node(self) -> None:
+        render_artifacts = load_module()
+
+        artifact = render_artifacts.render_v2ray_subscription(REPO_ROOT, node_name="dedirock")
+
+        self.assertIn("GG-Dedirock", artifact)
+        self.assertNotIn("GG-Lisa-Stable", artifact)
+        self.assertNotIn("GG-Akile", artifact)
+        self.assertEqual(1, sum(1 for line in artifact.splitlines() if line.startswith("vless://")))
+
 
 if __name__ == "__main__":
     unittest.main()

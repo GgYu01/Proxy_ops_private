@@ -1,0 +1,1 @@
+hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt#GG-Akile
