@@ -1,0 +1,380 @@
+mixed-port: 7890
+allow-lan: false
+bind-address: 127.0.0.1
+mode: rule
+find-process-mode: always
+log-level: info
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+geodata-mode: false
+external-controller: 127.0.0.1:9090
+profile:
+  store-selected: true
+  store-fake-ip: true
+tun:
+  enable: true
+  stack: mixed
+  auto-route: true
+  auto-redirect: true
+  strict-route: true
+  auto-detect-interface: true
+  dns-hijack:
+  - any:53
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+  - '*.lan'
+  - localhost.ptlogin2.qq.com
+  - dns.msftncsi.com
+  - www.msftncsi.com
+  - time.windows.com
+  - time.apple.com
+  - time.asia.apple.com
+  default-nameserver:
+  - 223.5.5.5
+  - 119.29.29.29
+  nameserver:
+  - https://dns.alidns.com/dns-query
+  - https://doh.pub/dns-query
+  proxy-server-nameserver:
+  - https://dns.alidns.com/dns-query
+  - https://doh.pub/dns-query
+  fallback:
+  - https://1.1.1.1/dns-query
+  - https://8.8.8.8/dns-query
+  fallback-filter:
+    geoip: false
+proxies:
+- name: GG-US-SEA-BGP-01
+  type: vless
+  server: 69.5.53.82
+  port: 10003
+  uuid: c8471f9b-37d4-4d7d-9787-07d80ca06557
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: ZpOH8N0bk-rey0pU2hqOLAGH_LnYMRi4HxVbbgP5nig
+    short-id: 3465c78a4b49ca4e
+- name: GG-Lisa-Stable
+  type: vless
+  server: 38.34.8.59
+  port: 10003
+  uuid: 5be04bd0-6f4b-4049-a5b7-414176753a51
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: G5mH1KsIAb4JxYRBnrC1TIQhOcRp8GHlxa25LfhvvhY
+    short-id: 697399025775544e
+- name: GG-Lisahost-KR
+  type: vless
+  server: 203.227.191.106
+  port: 10003
+  uuid: 9abe7d0b-a6dc-43ca-a4ac-6e890eefc12d
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: YVC8FX9dj8m0tUek-XrV2GSGU5fgsr8PhNUDfcWeHV4
+    short-id: b8e79d51a7c07e3e
+- name: GG-Vmrack1
+  type: vless
+  server: 38.65.93.39
+  port: 10003
+  uuid: 46e1f1cc-6476-4fbc-b25d-969fa643c816
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
+    short-id: e0924c6d9062f4d5
+- name: GG-Vmrack2
+  type: vless
+  server: 38.65.93.94
+  port: 10003
+  uuid: 65ba322b-7d6a-4428-8c32-f6d5f635b283
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: cFRblQp7JM-Uo4piDmhbEdKBBbS1w4NwnqJFhnE01S0
+    short-id: 8ed50d6631f38183
+- name: GG-Dedirock
+  type: vless
+  server: 67.215.238.140
+  port: 10003
+  uuid: a6b593d0-4c12-426d-bf59-981161d13262
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI
+    short-id: 38b9604a52692bd9
+proxy-groups:
+- name: PROXY
+  type: select
+  proxies:
+  - GG-US-SEA-BGP-01
+  - Auto
+  - GG-Lisa-Stable
+  - GG-Lisahost-KR
+  - GG-Vmrack1
+  - GG-Vmrack2
+  - GG-Dedirock
+  - DIRECT
+- name: Auto
+  type: url-test
+  proxies:
+  - GG-US-SEA-BGP-01
+  - GG-Lisa-Stable
+  - GG-Lisahost-KR
+  - GG-Vmrack1
+  - GG-Vmrack2
+  - GG-Dedirock
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 80
+rule-providers:
+  privateip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/privateip.mrs
+    path: ./ruleset/dustinwin/privateip.mrs
+    interval: 86400
+    proxy: PROXY
+  cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cn.mrs
+    path: ./ruleset/dustinwin/cn.mrs
+    interval: 86400
+    proxy: PROXY
+  cnip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cnip.mrs
+    path: ./ruleset/dustinwin/cnip.mrs
+    interval: 86400
+    proxy: PROXY
+  apple-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs
+    path: ./ruleset/dustinwin/apple-cn.mrs
+    interval: 86400
+    proxy: PROXY
+  microsoft-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/microsoft-cn.mrs
+    path: ./ruleset/dustinwin/microsoft-cn.mrs
+    interval: 86400
+    proxy: PROXY
+  google-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/google-cn.mrs
+    path: ./ruleset/dustinwin/google-cn.mrs
+    interval: 86400
+    proxy: PROXY
+  ads:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ads.mrs
+    path: ./ruleset/dustinwin/ads.mrs
+    interval: 86400
+    proxy: PROXY
+  proxy:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.mrs
+    path: ./ruleset/dustinwin/proxy.mrs
+    interval: 86400
+    proxy: PROXY
+  gfw:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/gfw.mrs
+    path: ./ruleset/dustinwin/gfw.mrs
+    interval: 86400
+    proxy: PROXY
+  tld-proxy:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/tld-proxy.mrs
+    path: ./ruleset/dustinwin/tld-proxy.mrs
+    interval: 86400
+    proxy: PROXY
+  telegramip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/telegramip.mrs
+    path: ./ruleset/dustinwin/telegramip.mrs
+    interval: 86400
+    proxy: PROXY
+rules:
+# === HIGHEST PRIORITY CURSOR DOMAIN DIRECT PROTECTIONS ===
+# Cursor domains are fuzzy-matched with DOMAIN-KEYWORD,cursor before process
+# rules. This makes Cursor destinations direct no matter which app opens them,
+# including apps with process-level PROXY overrides.
+# === END HIGHEST PRIORITY CURSOR DOMAIN DIRECT PROTECTIONS ===
+- DOMAIN-KEYWORD,cursor,DIRECT
+- DOMAIN-SUFFIX,cursor.sh,DIRECT
+- DOMAIN-SUFFIX,cursor.com,DIRECT
+- DOMAIN-SUFFIX,cursorapi.com,DIRECT
+- DOMAIN-SUFFIX,cursor-cdn.com,DIRECT
+- DOMAIN-SUFFIX,anysphere.co,DIRECT
+- DOMAIN-SUFFIX,anysphere.inc,DIRECT
+# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
+# WPS Office and Kingsoft domains are matched before process rules so WPS
+# embedded WebView or helper subprocess traffic stays DIRECT even when the
+# process name is shared with other apps.
+# === END WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
+- DOMAIN-KEYWORD,kingsoft,DIRECT
+- DOMAIN-SUFFIX,kingsoft.com,DIRECT
+- DOMAIN-SUFFIX,kingsoft-office-service.com,DIRECT
+- DOMAIN-SUFFIX,wps.cn,DIRECT
+- DOMAIN-SUFFIX,wpscdn.cn,DIRECT
+- DOMAIN-SUFFIX,wpscdn.com,DIRECT
+- DOMAIN-SUFFIX,kdocs.cn,DIRECT
+- DOMAIN-SUFFIX,kdocs.com,DIRECT
+- DOMAIN-SUFFIX,ksosoft.com,DIRECT
+- DOMAIN-SUFFIX,ksord.com,DIRECT
+- DOMAIN-SUFFIX,wpsplus.com,DIRECT
+# === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
+# This editable block contains DIRECT process protections.
+# This profile is for users in mainland China: private, China, Apple China,
+# Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
+# cloud sync / update, and subscription update traffic stay DIRECT; non-mainland
+# fallback traffic uses PROXY.
+# To stop protecting one DIRECT process, comment out its line. Keep these
+# process rules explicit and predictable.
+- PROCESS-NAME,QQ.exe,DIRECT
+- PROCESS-NAME,QQProtect.exe,DIRECT
+- PROCESS-NAME,TIM.exe,DIRECT
+- PROCESS-NAME,Cursor.exe,DIRECT
+- PROCESS-NAME,cursor.exe,DIRECT
+- PROCESS-NAME,cursor-agent.exe,DIRECT
+- PROCESS-NAME,WeChat.exe,DIRECT
+- PROCESS-NAME,WeChatAppEx.exe,DIRECT
+- PROCESS-NAME,WeChatBrowser.exe,DIRECT
+- PROCESS-NAME,WeChatOCR.exe,DIRECT
+- PROCESS-NAME,Weixin.exe,DIRECT
+- PROCESS-NAME,WXWork.exe,DIRECT
+- PROCESS-NAME,wps.exe,DIRECT
+- PROCESS-NAME,wpp.exe,DIRECT
+- PROCESS-NAME,et.exe,DIRECT
+- PROCESS-NAME,wpspdf.exe,DIRECT
+- PROCESS-NAME,wpscloudsvr.exe,DIRECT
+- PROCESS-NAME,ksolaunch.exe,DIRECT
+- PROCESS-NAME,wpsupdate.exe,DIRECT
+- PROCESS-NAME,ksomisc.exe,DIRECT
+- PROCESS-NAME,QQ,DIRECT
+- PROCESS-NAME,Cursor,DIRECT
+- PROCESS-NAME,Cursor Helper,DIRECT
+- PROCESS-NAME,Cursor Helper (GPU),DIRECT
+- PROCESS-NAME,Cursor Helper (Plugin),DIRECT
+- PROCESS-NAME,Cursor Helper (Renderer),DIRECT
+- PROCESS-NAME,cursor-agent,DIRECT
+- PROCESS-NAME,WeChat,DIRECT
+- PROCESS-NAME,Weixin,DIRECT
+- PROCESS-NAME,WXWork,DIRECT
+- PROCESS-NAME,qq,DIRECT
+- PROCESS-NAME,cursor,DIRECT
+- PROCESS-NAME,wechat,DIRECT
+- PROCESS-NAME,weixin,DIRECT
+- PROCESS-NAME,wxwork,DIRECT
+- PROCESS-PATH,C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
+- PROCESS-PATH,C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Cursor\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Kingsoft\WPS Office\*,DIRECT
+- PROCESS-PATH-WILDCARD,/Applications/Cursor.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/usr/bin/cursor*,DIRECT
+# === END USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
+# === USER-EDITABLE PROCESS PROXY OVERRIDES ===
+# These narrow PROXY overrides target Simprint's Chrome profile browser plus
+# selected AI/developer desktop app install paths: Antigravity, ChatGPT,
+# ChatGPT Atlas, and Codex. They deliberately do not target shared runtimes
+# such as msedgewebview2.exe, node, or python.
+# Comment individual lines out to route that app by destination rules only.
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,PROXY
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe,PROXY
+- PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity*\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Antigravity\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe,PROXY
+- PROCESS-PATH-WILDCARD,C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,PROXY
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*,PROXY
+- PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT Atlas.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Applications/Codex.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Antigravity.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT Atlas.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Codex.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
+- PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
+- PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
+- PROCESS-PATH-WILDCARD,/opt/chatgpt/*,PROXY
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt*,PROXY
+- PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,PROXY
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,PROXY
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,PROXY
+- PROCESS-PATH-WILDCARD,/opt/codex/*,PROXY
+- PROCESS-PATH,/usr/bin/codex,PROXY
+# === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
+# Domain and DustinWin/ruleset_geodata rules start below.
+- DOMAIN,proxy-subscriptions.svc.prod.lab.gglohh.top,DIRECT
+- DOMAIN-SUFFIX,proxy-subscriptions.svc.prod.lab.gglohh.top,DIRECT
+- RULE-SET,privateip,DIRECT,no-resolve
+- RULE-SET,ads,REJECT
+- RULE-SET,apple-cn,DIRECT
+- RULE-SET,microsoft-cn,DIRECT
+- RULE-SET,google-cn,DIRECT
+- RULE-SET,cn,DIRECT
+- RULE-SET,cnip,DIRECT,no-resolve
+- RULE-SET,telegramip,PROXY,no-resolve
+- RULE-SET,proxy,PROXY
+- RULE-SET,gfw,PROXY
+- RULE-SET,tld-proxy,PROXY
+- MATCH,PROXY
