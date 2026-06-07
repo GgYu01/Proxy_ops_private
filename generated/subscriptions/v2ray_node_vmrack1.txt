@@ -1,0 +1,1 @@
+vless://46e1f1cc-6476-4fbc-b25d-969fa643c816@38.65.93.39:10003?security=reality&encryption=none&pbk=mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=e0924c6d9062f4d5#GG-Vmrack1

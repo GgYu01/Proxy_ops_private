@@ -174,6 +174,10 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
   exit 0
 fi
 
+echo "[INFO] Regenerating subscription artifacts with availability probe"
+"${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
+"${PYTHON}" "${ROOT_DIR}/scripts/reconcile_subscription_node_availability.py" --report
+
 run_ssh "mkdir -p '${REMOTE_PUBLIC_ROOT}' && rm -rf '${REMOTE_STAGE_DIR}' && mkdir -p '${REMOTE_STAGE_DIR}'"
 tar czf - -C "${SUBSCRIPTIONS_DIR}" . | run_ssh "tar xzf - -C '${REMOTE_STAGE_DIR}'"
 run_ssh "\

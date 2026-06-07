@@ -3,6 +3,7 @@
 import html
 import json
 import os
+import sys
 import urllib.parse
 from pathlib import Path
 
@@ -10,6 +11,16 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from subscription_node_availability import (
+    ensure_minimum_published_nodes,
+    exclusion_report,
+    refresh_availability,
+    subscription_eligible_nodes,
+)
 PUBLIC_SUBSCRIPTIONS_HOST = "proxy-subscriptions.svc.prod.lab.gglohh.top"
 
 DUSTINWIN_MIHOMO_RULESET_BASE_URL = (
@@ -526,7 +537,7 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
 
 
 def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
-    nodes = enabled_nodes(repo_root)
+    nodes = subscription_eligible_nodes(repo_root)
     proxy_names = [str(node["subscription_alias"]) for node in nodes]
     default_proxy = "PROXY"
     subscription_host = public_subscriptions_host(repo_root)
@@ -610,7 +621,15 @@ def single_node_hiddify_import_filename(node_name: str) -> str:
 
 
 def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None = None) -> str:
-    nodes = enabled_nodes(repo_root) if node_name is None else [enabled_node_by_name(repo_root, node_name)]
+    if node_name is None:
+        nodes = subscription_eligible_nodes(repo_root)
+    else:
+        eligible_names = {node["name"] for node in subscription_eligible_nodes(repo_root)}
+        if node_name not in eligible_names:
+            return ""
+        nodes = [enabled_node_by_name(repo_root, node_name)]
+    if not nodes:
+        return ""
     return "\n".join(vless_link(node) for node in nodes) + "\n"
 
 
@@ -665,10 +684,13 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
     singbox_url = base_url + "/singbox-client-profile.json"
 
     node_sections: list[str] = []
-    for index, node in enumerate(enabled_nodes(repo_root), start=1):
+    availability = exclusion_report(repo_root)
+    pending_names = set(availability.pending)
+    for index, node in enumerate(subscription_eligible_nodes(repo_root), start=1):
         node_name = str(node["name"])
         alias = html.escape(str(node["subscription_alias"]))
         provider = html.escape(str(node.get("provider", "unknown")))
+        pending_note = " · 探测异常，暂仍发布" if node_name in pending_names else ""
         v2ray_url = base_url + f"/{single_node_subscription_filename(node_name)}"
         v2ray_url_html = html.escape(v2ray_url)
         node_sections.append(
@@ -680,7 +702,7 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
                     "        </div>",
                     "        <div class=\"node-copy\">",
                     f"          <h3>{alias}</h3>",
-                    f"          <p>{provider} · VLESS Reality · 端口 {int(node['base_port']) + 3}</p>",
+                    f"          <p>{provider} · VLESS Reality · 端口 {int(node['base_port']) + 3}{pending_note}</p>",
                     "        </div>",
                     "        <div class=\"node-actions\">",
                     f"          <a class=\"text-link\" href=\"{v2ray_url_html}\">订阅 URL</a>",
@@ -1021,7 +1043,7 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
         <p class="hero-copy">一个明亮、免登录、可直接复制的订阅入口。Clash Verge Rev / mihomo 配置优先，同时保留 VLESS URL 和 sing-box Remote Profile 兼容入口。</p>
       </div>
       <div class="status-board" aria-label="订阅状态摘要">
-        <div class="metric"><strong>{len(enabled_nodes(repo_root))}</strong><span>可发布节点</span></div>
+        <div class="metric"><strong>{len(subscription_eligible_nodes(repo_root))}</strong><span>可发布节点</span></div>
         <div class="metric"><strong>{subscriptions["update_interval_hours"]}h</strong><span>建议更新周期</span></div>
         <div class="metric"><strong>{public_port}</strong><span>订阅入口端口</span></div>
         <div class="metric"><strong>KR</strong><span>新增区域</span></div>
@@ -1169,7 +1191,7 @@ def proxy_outbound_for_node(node: dict) -> dict:
 
 
 def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
-    nodes = enabled_nodes(repo_root)
+    nodes = subscription_eligible_nodes(repo_root)
     aliases = ", ".join(str(node["subscription_alias"]) for node in nodes)
     process_sections = []
     for platform in ("windows", "macos", "linux"):
@@ -1268,16 +1290,36 @@ def remove_legacy_hiddify_import_files(repo_root: Path = REPO_ROOT) -> None:
         path.unlink()
 
 
+def prune_stale_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> None:
+    subscriptions_dir = repo_root / "generated" / "subscriptions"
+    eligible_names = {str(node["name"]) for node in subscription_eligible_nodes(repo_root)}
+    for path in subscriptions_dir.glob("v2ray_node_*.txt"):
+        node_name = path.name.removeprefix("v2ray_node_").removesuffix(".txt")
+        if node_name not in eligible_names:
+            path.unlink()
+
+
 def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
+    refresh_availability(repo_root)
+    eligible = subscription_eligible_nodes(repo_root)
+    ensure_minimum_published_nodes(repo_root, eligible)
+    report = exclusion_report(repo_root)
+    if report.excluded or report.pending:
+        print(
+            "[INFO] subscription availability: "
+            f"eligible={len(eligible)} excluded={report.excluded} pending={report.pending}"
+        )
+
     remove_legacy_mihomo_platform_profiles(repo_root)
     remove_legacy_hiddify_import_files(repo_root)
     write_text(repo_root / "generated" / "subscriptions" / "index.html", render_subscription_landing_page(repo_root))
     write_text(repo_root / "generated" / "subscriptions" / "v2ray_nodes.txt", render_v2ray_subscription(repo_root))
-    for node in enabled_nodes(repo_root):
+    for node in eligible:
         write_text(
             repo_root / "generated" / "subscriptions" / single_node_subscription_filename(node["name"]),
             render_v2ray_subscription(repo_root, node_name=node["name"]),
         )
+    prune_stale_single_node_subscriptions(repo_root)
     singbox_manifest = render_singbox_remote_profile(repo_root)
     write_text(repo_root / "generated" / "subscriptions" / "singbox-client-profile.json", singbox_manifest)
     write_text(repo_root / "generated" / "subscriptions" / "singbox_remote_profile.json", render_singbox_remote_profile(repo_root))

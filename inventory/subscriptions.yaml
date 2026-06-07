@@ -18,5 +18,12 @@
     "remote_subscriptions_dir": "/srv/proxy-subscriptions/public/subscriptions",
     "systemd_unit": "gg-proxy-subscriptions-http.service",
     "verify_url": "http://69.5.53.82:18080/subscriptions/v2ray_nodes.txt"
+  },
+  "availability_policy": {
+    "probe_port_offset": 1,
+    "exclude_after_hours": 72,
+    "min_published_nodes": 1,
+    "probe_timeout_seconds": 2.5,
+    "ledger_path": "state/node_availability.json"
   }
 }

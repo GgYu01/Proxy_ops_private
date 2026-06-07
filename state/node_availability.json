@@ -1,0 +1,47 @@
+{
+  "updated_at": "2026-06-07T14:51:37.567371Z",
+  "nodes": {
+    "lisahost": {
+      "last_probe_at": "2026-06-07T14:51:37.560418Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.560418Z",
+      "detail": "tcp connect ok 38.34.8.59:10001"
+    },
+    "lisahost_kr": {
+      "last_probe_at": "2026-06-07T14:51:37.561472Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.561472Z",
+      "detail": "tcp connect ok 203.227.191.106:10001"
+    },
+    "vmrack1": {
+      "last_probe_at": "2026-06-07T14:51:37.561472Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.561472Z",
+      "detail": "tcp connect ok 38.65.93.39:10001"
+    },
+    "vmrack2": {
+      "last_probe_at": "2026-06-07T14:51:37.562478Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.562478Z",
+      "detail": "tcp connect ok 38.65.93.94:10001"
+    },
+    "dedirock": {
+      "last_probe_at": "2026-06-07T14:51:37.562478Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.562478Z",
+      "detail": "tcp connect ok 67.215.238.140:10001"
+    },
+    "us_sea_bgp_01": {
+      "last_probe_at": "2026-06-07T14:51:37.563334Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-07T14:51:37.563334Z",
+      "detail": "tcp connect ok 69.5.53.82:10001"
+    }
+  }
+}
