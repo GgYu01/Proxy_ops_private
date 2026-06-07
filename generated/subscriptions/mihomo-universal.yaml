@@ -364,8 +364,8 @@ rules:
 - PROCESS-PATH,/usr/bin/codex,PROXY
 # === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
 # Domain and DustinWin/ruleset_geodata rules start below.
-- DOMAIN,proxy-subscriptions.svc.prod.lab.gglohh.top,DIRECT
-- DOMAIN-SUFFIX,proxy-subscriptions.svc.prod.lab.gglohh.top,DIRECT
+- DOMAIN,69.5.53.82,DIRECT
+- DOMAIN-SUFFIX,69.5.53.82,DIRECT
 - RULE-SET,privateip,DIRECT,no-resolve
 - RULE-SET,ads,REJECT
 - RULE-SET,apple-cn,DIRECT

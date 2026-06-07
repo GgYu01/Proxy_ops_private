@@ -1,177 +1,82 @@
 # 当前订阅接入速查
 
+## 一句话结论
+
+当前权威客户端入口是 LisaHost SEA BGP 临时宿主上的 HTTP 订阅：
+
+- `http://69.5.53.82:18080/subscriptions`
+
+节点池为 **六节点**，故障转移优先级以 `us_sea_bgp_01` / `GG-US-SEA-BGP-01` 为首。
+
+原 infra-core Traefik 域名 `:27111` 已随 `112.28.134.53` 主机退役，**不得**再作为客户端主入口。
+
 ## 适用范围
 
-这份文档描述当前这套已发布订阅的真实使用方式，适用于：
+这份文档描述当前订阅入口的使用方式，适用于：
 
-- `Ubuntu.online` 上已经发布的订阅入口
-- 三节点池：`Lisahost`、`Akilecloud`、`Dedirock`
-- Windows / Linux / Android 客户端直接导入
-
-如果你看到公开仓库里还有 `show_info.sh`、单节点 VLESS 分享链接之类的描述，那是 standalone 基线文档，不是这套现网订阅方案的主入口。
+- LisaHost SEA BGP（`69.5.53.82`）上由 `gg-proxy-subscriptions-http.service` 提供的静态订阅站
+- 六节点池：`us_sea_bgp_01`、`Lisahost`、`Lisahost-KR`、`vmrack1`、`vmrack2`、`dedirock`
+- Windows / Linux / macOS 客户端直接导入 `mihomo-universal.yaml` 或 VLESS 订阅
 
 ## 当前权威入口
 
-- 多节点总订阅 URL：
-  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt`
-- 多节点 Hiddify 一键导入：
-  - `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt#GG%20Proxy%20Nodes`
-- 单节点锁定 URL：
-  - `Lisahost`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt`
-  - `Akilecloud`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt`
-  - `Dedirock`: `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt`
-- 单节点 Hiddify 一键导入：
-  - `Lisahost`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt#GG-Lisa-Stable`
-  - `Akilecloud`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt#GG-Akile`
-  - `Dedirock`: `hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt#GG-Dedirock`
-- sing-box 辅助清单：
-  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/singbox-client-profile.json`
+- 多节点总订阅 URL
+  - `http://69.5.53.82:18080/subscriptions/v2ray_nodes.txt`
+- Clash Verge Rev / mihomo universal profile
+  - `http://69.5.53.82:18080/subscriptions/mihomo-universal.yaml`
+- 进程路由说明
+  - `http://69.5.53.82:18080/subscriptions/mihomo-process-routing.md`
+- sing-box Remote Profile 清单
+  - `http://69.5.53.82:18080/subscriptions/singbox-client-profile.json`
 
-## 推荐客户端
+单节点订阅 URL（示例）：
 
-- Windows：`Hiddify` 优先，`v2rayN` 备用
-- Linux：`Hiddify` 优先，`v2rayN` 备用
-- Android：`Hiddify` 优先，`v2rayNG` 备用
+- `GG-US-SEA-BGP-01`
+  - `http://69.5.53.82:18080/subscriptions/v2ray_node_us_sea_bgp_01.txt`
+- `GG-Lisa-Stable`
+  - `http://69.5.53.82:18080/subscriptions/v2ray_node_lisahost.txt`
+- `GG-Lisahost-KR`
+  - `http://69.5.53.82:18080/subscriptions/v2ray_node_lisahost_kr.txt`
 
-## Windows
+完整列表见 landing 页：`http://69.5.53.82:18080/`
 
-### 推荐方式
+## 已退役入口（勿用）
 
-优先使用 `Hiddify`。
+- `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/*`
+- 任何指向 `112.28.134.53` 或 `/mnt/hdo/infra-core` 的发布/运维路径
 
-### 最短步骤
+## 节点优先级
 
-1. 安装 Hiddify。
-2. 直接打开这条导入链接：
+与 `inventory/subscriptions.yaml` 中 `failover_priority` 一致：
 
-```text
-hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt#GG%20Proxy%20Nodes
-```
+1. `us_sea_bgp_01` / `GG-US-SEA-BGP-01`
+2. `lisahost` / `GG-Lisa-Stable`
+3. `lisahost_kr` / `GG-Lisahost-KR`
+4. `vmrack1` / `GG-Vmrack1`
+5. `vmrack2` / `GG-Vmrack2`
+6. `dedirock` / `GG-Dedirock`
 
-3. 在客户端里更新订阅。
-4. 选择你要使用的节点。
+## 发布订阅（运维）
 
-如果你不想导入后默认先落在 `Lisa`，不要用上面的多节点导入，直接改用对应的单节点 Hiddify 链接：
-
-```text
-hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt#GG-Akile
-```
-
-### 备用方式
-
-如果你使用 `v2rayN`，把下面这条作为订阅 URL 导入：
-
-```text
-https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt
-```
-
-## Linux
-
-### 推荐方式
-
-优先使用 `Hiddify` Desktop。
-
-### 最短步骤
-
-1. 安装 Hiddify。
-2. 导入同一条 Hiddify 链接，或者直接导入订阅 URL。
-3. 更新订阅并选择节点。
-
-如果你想固定到某个节点，不想每次手工点选，直接导入对应的单节点 URL 即可。
-
-### 备用方式
-
-如果你使用 `v2rayN` Linux 版本，同样导入：
-
-```text
-https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt
-```
-
-## Android
-
-### 推荐方式
-
-优先使用 `Hiddify`。
-
-### 最短步骤
-
-1. 安装 Hiddify Android。
-2. 直接打开这条导入链接：
-
-```text
-hiddify://import/https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt#GG%20Proxy%20Nodes
-```
-
-3. 更新订阅并选择节点。
-
-如果你要固定到 `Akilecloud` 或 `Dedirock`，直接改用对应的单节点 Hiddify 链接，不要再先导入多节点总订阅。
-
-### 备用方式
-
-如果你使用 `v2rayNG`，把下面这条作为订阅 URL 导入：
-
-```text
-https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_nodes.txt
-```
-
-## 如何理解和选择节点
-
-- 当前优先级策略是：
-  - `Lisahost`
-  - `Akilecloud`
-  - `Dedirock`
-- `infra-core` 自己的 sidecar 会按这个顺序做主备切换。
-- 客户端订阅看到的是多个节点；客户端侧是否自动切换，取决于客户端自身能力和你选择的模式。
-
-## 为什么 Hiddify 默认是 Lisa
-
-当前 `v2ray_nodes.txt` 的顺序是：
-
-1. `GG-Lisa-Stable`
-2. `GG-Dedirock`
-3. `GG-Akile`
-
-Hiddify 导入订阅后，常见表现是先把第一个节点当成当前默认节点，所以你第一次看到的是 `Lisa`。
-
-这和 `infra-core` 的主备优先级并不冲突：
-
-- `infra-core` sidecar 的默认主备本来就先走 `Lisahost`
-- 客户端订阅文件目前也把 `Lisa` 放在第一位
-
-## Hiddify 里怎么切换节点
-
-### 方式 1：继续使用多节点总订阅
-
-1. 打开 Hiddify。
-2. 进入当前订阅下的节点列表。
-3. 先执行一次延迟测试。
-4. 直接点选你要使用的节点，例如 `GG-Dedirock` 或 `GG-Akile`。
-5. 连接后再做一次出口验证。
-
-### 方式 2：直接导入单节点订阅
-
-如果你不想每次手工点选，直接导入对应的单节点链接：
-
-- `Lisahost`
-  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_lisahost.txt`
-- `Akilecloud`
-  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_akilecloud.txt`
-- `Dedirock`
-  - `https://proxy-subscriptions.svc.prod.lab.gglohh.top:27111/subscriptions/v2ray_node_dedirock.txt`
-
-这样导入后，客户端里只有一个节点，不会再先默认落到 `Lisa`。
-
-## 一个容易误判的点
-
-`infra-core` 当前是规则分流，不是“所有流量都强制走远端代理”。
-
-所以：
-
-- 命中规则的流量会按当前主备节点出口
-- 不命中规则的流量仍可能直接走宿主默认出口
-
-如果你要验证“代理是否真的生效”，不要只看普通查 IP 网站。运维侧应优先用：
+在本地生成产物后：
 
 ```bash
-bash /workspaces/proxy_own/proxy_ops_private/scripts/check_infra_core_egress_ip.sh
+python3 scripts/render_artifacts.py
+bash scripts/publish_subscriptions_to_sea_host.sh --dry-run
+REMOTE_PASSWORD='...' bash scripts/publish_subscriptions_to_sea_host.sh
 ```
+
+旧脚本 `publish_subscriptions_to_infra_core.sh` 仅为兼容 wrapper，会委托到新脚本。
+
+## 验证
+
+```bash
+curl -fsS http://69.5.53.82:18080/subscriptions/v2ray_nodes.txt | head -1
+curl -fsS http://69.5.53.82:18080/subscriptions/mihomo-universal.yaml | grep -E 'wps.cn|wps.exe'
+```
+
+Windows 本机路由验收见根仓 `scripts/windows/accept-mihomo-windows.ps1`。
+
+## 相关 ADR
+
+- [ADR-0020](../../docs/adr/ADR-0020-sea-bgp-temporary-subscription-host.md) — infra-core 退役与 SEA BGP 临时订阅宿主

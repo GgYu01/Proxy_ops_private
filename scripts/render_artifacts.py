@@ -285,7 +285,7 @@ def ordered_enabled_nodes(repo_root: Path, *, infra_core_only: bool = False) -> 
     for raw_name in configured_priority:
         node_name = str(raw_name)
         if node_name not in node_by_name:
-            raise ValueError(f"failover_priority references unknown infra-core node: {node_name}")
+            raise ValueError(f"failover_priority references unknown enabled node: {node_name}")
         ordered_nodes.append(node_by_name[node_name])
         seen.add(node_name)
 
@@ -297,10 +297,6 @@ def ordered_enabled_nodes(repo_root: Path, *, infra_core_only: bool = False) -> 
 
 def enabled_nodes(repo_root: Path) -> list[dict]:
     return ordered_enabled_nodes(repo_root)
-
-
-def ordered_infra_core_nodes(repo_root: Path) -> list[dict]:
-    return ordered_enabled_nodes(repo_root, infra_core_only=True)
 
 
 def enabled_node_by_name(repo_root: Path, node_name: str) -> dict:
@@ -650,9 +646,21 @@ def render_singbox_remote_profile(repo_root: Path = REPO_ROOT) -> str:
     return json.dumps(manifest, indent=2) + "\n"
 
 
+def subscription_public_port(subscriptions: dict) -> str:
+    parsed = urllib.parse.urlparse(subscriptions["subscription_base_url"])
+    if parsed.port is not None:
+        return str(parsed.port)
+    if parsed.scheme == "https":
+        return "443"
+    if parsed.scheme == "http":
+        return "80"
+    return "unknown"
+
+
 def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
     subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
     base_url = subscriptions["subscription_base_url"].rstrip("/")
+    public_port = subscription_public_port(subscriptions)
     multi_node_url = base_url + "/v2ray_nodes.txt"
     singbox_url = base_url + "/singbox-client-profile.json"
 
@@ -1015,7 +1023,7 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
       <div class="status-board" aria-label="订阅状态摘要">
         <div class="metric"><strong>{len(enabled_nodes(repo_root))}</strong><span>可发布节点</span></div>
         <div class="metric"><strong>{subscriptions["update_interval_hours"]}h</strong><span>建议更新周期</span></div>
-        <div class="metric"><strong>27111</strong><span>域名入口端口</span></div>
+        <div class="metric"><strong>{public_port}</strong><span>订阅入口端口</span></div>
         <div class="metric"><strong>KR</strong><span>新增区域</span></div>
       </div>
     </section>
@@ -1160,64 +1168,6 @@ def proxy_outbound_for_node(node: dict) -> dict:
     }
 
 
-def render_infra_core_config(repo_root: Path = REPO_ROOT) -> str:
-    template = load_json_yaml(repo_root / "templates" / "infra_core_current_config.json")
-    ordered_nodes = ordered_infra_core_nodes(repo_root)
-    proxy_tags = [f"proxy_{node['name']}" for node in ordered_nodes]
-
-    template["outbounds"] = [
-        *[proxy_outbound_for_node(node) for node in ordered_nodes],
-        {
-            "type": "selector",
-            "tag": "proxy_failover",
-            "outbounds": proxy_tags,
-            "default": proxy_tags[0] if proxy_tags else "",
-            "interrupt_exist_connections": True,
-        },
-        {
-            "type": "direct",
-            "tag": "direct",
-        },
-    ]
-
-    for server in template["dns"]["servers"]:
-        if server.get("detour") == "proxy":
-            server["detour"] = "proxy_failover"
-
-    route_rules = template["route"]["rules"]
-    for rule in route_rules:
-        if rule.get("outbound") == "proxy":
-            rule["outbound"] = "proxy_failover"
-        if "ip_cidr" in rule and rule.get("outbound") == "direct":
-            rule["ip_cidr"] = [f"{node['host']}/32" for node in ordered_nodes]
-
-    return json.dumps(template, indent=2) + "\n"
-
-
-def render_infra_core_failover_policy(repo_root: Path = REPO_ROOT) -> str:
-    ordered_nodes = ordered_infra_core_nodes(repo_root)
-    proxy_tags = [f"proxy_{node['name']}" for node in ordered_nodes]
-    policy = {
-        "selector_tag": "proxy_failover",
-        "default_tag": proxy_tags[0] if proxy_tags else "",
-        "probe_url": "http://www.gstatic.com/generate_204",
-        "probe_timeout_seconds": 8,
-        "priority": [],
-    }
-    for node in ordered_nodes:
-        policy["priority"].append(
-            {
-                "tag": f"proxy_{node['name']}",
-                "name": node["name"],
-                "host": node["host"],
-                "http_port": int(node["base_port"]) + 1,
-                "proxy_user": node["secrets"]["PROXY_USER"],
-                "proxy_pass": node["secrets"]["PROXY_PASS"],
-            }
-        )
-    return json.dumps(policy, indent=2) + "\n"
-
-
 def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
     nodes = enabled_nodes(repo_root)
     aliases = ", ".join(str(node["subscription_alias"]) for node in nodes)
@@ -1335,11 +1285,6 @@ def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
     write_text(
         repo_root / "generated" / "subscriptions" / "mihomo-process-routing.md",
         render_mihomo_process_routing_notes(repo_root),
-    )
-    write_text(repo_root / "generated" / "infra-core" / "vless-sidecar" / "config.json", render_infra_core_config(repo_root))
-    write_text(
-        repo_root / "generated" / "infra-core" / "vless-sidecar" / "failover_policy.json",
-        render_infra_core_failover_policy(repo_root),
     )
 
 

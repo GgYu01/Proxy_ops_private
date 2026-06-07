@@ -33,10 +33,6 @@ class SubscriptionLandingPageRenderTests(unittest.TestCase):
                 REPO_ROOT / "inventory" / "subscriptions.yaml",
                 repo_root / "inventory" / "subscriptions.yaml",
             )
-            shutil.copy2(
-                REPO_ROOT / "templates" / "infra_core_current_config.json",
-                repo_root / "templates" / "infra_core_current_config.json",
-            )
             shutil.copytree(REPO_ROOT / "secrets" / "nodes", repo_root / "secrets" / "nodes")
 
             render_artifacts.write_generated_artifacts(repo_root)
