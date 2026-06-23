@@ -1,0 +1,23 @@
+[Unit]
+Description=GG Proxy Subscriptions Static Service
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=docker.io/library/busybox:1.37
+ContainerName=gg-proxy-subscriptions
+Exec=httpd -f -p 80 -h /www
+Volume=/srv/proxy-subscriptions/public:/www:ro,Z
+Label=traefik.enable=true
+Label=traefik.http.routers.sea-subs.rule=Host(`subs.sea.prod.gglohh.top`)
+Label=traefik.http.routers.sea-subs.entrypoints=websecure
+Label=traefik.http.routers.sea-subs.tls=true
+Label=traefik.http.routers.sea-subs.tls.certresolver=cf-staging
+Label=traefik.http.routers.sea-subs.service=sea-subs
+Label=traefik.http.services.sea-subs.loadbalancer.server.port=80
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

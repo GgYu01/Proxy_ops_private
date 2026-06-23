@@ -1,7 +1,6 @@
 {
   "profile_name": "GG Proxy Nodes",
-  "subscription_base_url": "http://69.5.53.82:18080/subscriptions",
-  "hiddify_fragment_name": "GG Proxy Nodes",
+  "subscription_base_url": "https://subs.sea.prod.gglohh.top/subscriptions",
   "remote_profile_name": "GG Proxy Nodes Remote",
   "update_interval_hours": 12,
   "failover_priority": [
@@ -16,14 +15,27 @@
     "node": "us_sea_bgp_01",
     "remote_public_root": "/srv/proxy-subscriptions/public",
     "remote_subscriptions_dir": "/srv/proxy-subscriptions/public/subscriptions",
-    "systemd_unit": "gg-proxy-subscriptions-http.service",
-    "verify_url": "http://69.5.53.82:18080/subscriptions/v2ray_nodes.txt"
+    "remote_config_dir": "/srv/proxy-subscriptions/config",
+    "remote_container_config": "/etc/containers/systemd/gg-proxy-subscriptions.container",
+    "verify_url": "https://subs.sea.prod.gglohh.top/subscriptions/v2ray_nodes.txt"
   },
   "availability_policy": {
-    "probe_port_offset": 1,
+    "probe_method": "mihomo_openai_http",
+    "probe_port_offset": 3,
+    "openai_probe_url": "https://api.openai.com/v1/models",
+    "openai_expected_statuses": [
+      200,
+      401,
+      403,
+      404
+    ],
     "exclude_after_hours": 72,
     "min_published_nodes": 1,
     "probe_timeout_seconds": 2.5,
+    "mihomo_path": "C:\\Tools\\mihomo\\mihomo-windows-amd64.exe",
+    "mihomo_startup_timeout_seconds": 8,
+    "curl_timeout_seconds": 12,
+    "proxy_probe_attempts": 2,
     "ledger_path": "state/node_availability.json"
   }
 }

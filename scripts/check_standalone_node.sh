@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "${SCRIPT_DIR}/lib/standalone_node_common.sh"
+
+ROOT_DIR="$(standalone_node_root_dir)"
 
 usage() {
   cat <<'EOF'
-Usage: check_standalone_node.sh --node <lisahost|dedirock|akilecloud> [--dry-run]
+Usage: check_standalone_node.sh --node <node-name> [--dry-run]
+
+Required live env:
+  REMOTE_PROXY_SSH_PASSWORD_<NODE>
+
+Optional env:
+  REMOTE_PROXY_SSH_USER
+  REMOTE_PROXY_REMOTE_DIR
 EOF
 }
 
@@ -34,24 +45,35 @@ if [[ -z "${NODE}" ]]; then
   exit 1
 fi
 
-HOST="$(python3 - <<'PY' "${ROOT_DIR}" "${NODE}"
-import json, pathlib, sys
-root = pathlib.Path(sys.argv[1])
-node_name = sys.argv[2]
-inventory = json.loads((root / "inventory" / "nodes.yaml").read_text(encoding="utf-8"))
-node = next(item for item in inventory["nodes"] if item["name"] == node_name)
-print(node["host"])
-PY
-)"
+IFS=$'\t' read -r HOST SSH_PORT SSH_USER < <(standalone_node_resolve_ssh_target "${ROOT_DIR}" "${NODE}")
+RUNTIME_SERVICE="$(standalone_node_runtime_service "${ROOT_DIR}" "${NODE}")"
+SYSTEMD_SERVICE="$(standalone_node_systemd_service_name "${RUNTIME_SERVICE}")"
+VERIFY_COMMAND="$(standalone_node_verify_command "${RUNTIME_SERVICE}")"
+REMOTE_DIR="${REMOTE_PROXY_REMOTE_DIR:-/root/remote_proxy}"
+SSH_TARGET="${SSH_USER}@${HOST}"
+SSH_OPTS=(
+  -p "${SSH_PORT}"
+  -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
+  -o ConnectTimeout=15
+  -o ServerAliveInterval=15
+  -o ServerAliveCountMax=3
+)
 
 echo "[INFO] Checking node ${NODE} (${HOST})"
+echo "[INFO] SSH target: ${SSH_TARGET}:${SSH_PORT}"
 echo "[INFO] Expected checks:"
-printf '  - %s\n' "systemctl is-active remote-proxy" "systemctl cat remote-proxy" "podman ps" "ss -ltnp"
+printf '  - %s\n' \
+  "cd ${REMOTE_DIR} && ${VERIFY_COMMAND}" \
+  "systemctl is-active ${SYSTEMD_SERVICE}" \
+  "systemctl cat ${SYSTEMD_SERVICE}" \
+  "podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' | grep ${SYSTEMD_SERVICE}"
 
 if [[ "${DRY_RUN}" -eq 1 ]]; then
   echo "[DRY-RUN] No remote checks executed."
   exit 0
 fi
 
-echo "[ERROR] Live check not implemented yet in this revision."
-exit 4
+SSH_PASSWORD="$(standalone_node_require_ssh_password "${NODE}")"
+SSHPASS="${SSH_PASSWORD}" sshpass -e ssh "${SSH_OPTS[@]}" "${SSH_TARGET}" \
+  "cd '${REMOTE_DIR}' && ${VERIFY_COMMAND} && systemctl is-active ${SYSTEMD_SERVICE} && systemctl cat ${SYSTEMD_SERVICE} && podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' | grep ${SYSTEMD_SERVICE}"

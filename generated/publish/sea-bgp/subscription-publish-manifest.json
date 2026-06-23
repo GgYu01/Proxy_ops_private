@@ -1,0 +1,58 @@
+{
+  "container_config": {
+    "command": "httpd -f -p 80 -h /www",
+    "container_name": "gg-proxy-subscriptions",
+    "image": "docker.io/library/busybox:1.37",
+    "path": "generated/publish/sea-bgp/gg-proxy-subscriptions.container",
+    "sha256": "fe05cb300362c2bf4213f444b687e5812179d1dab9bdad16a78f8486f2d3b361",
+    "traefik_host": "subs.sea.prod.gglohh.top"
+  },
+  "generated_files": [
+    {
+      "bytes": 14461,
+      "path": "generated/subscriptions/index.html",
+      "sha256": "1d54b41be9b9ccdabee60b519a1d3f7b677774c1b678fd2721ee70114d10c5c0"
+    },
+    {
+      "bytes": 9444,
+      "path": "generated/subscriptions/mihomo-process-routing.md",
+      "sha256": "e97e82eb5716aa49764090d42c8984373575d0d2442304cc06eedd90ce363644"
+    },
+    {
+      "bytes": 11764,
+      "path": "generated/subscriptions/mihomo-universal.yaml",
+      "sha256": "2139ce26984c16eb45ce52c7272650434488939958bc3ee0afc8ae4cdfd51b33"
+    },
+    {
+      "bytes": 329,
+      "path": "generated/subscriptions/singbox-client-profile.json",
+      "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
+    },
+    {
+      "bytes": 329,
+      "path": "generated/subscriptions/singbox_remote_profile.json",
+      "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
+    },
+    {
+      "bytes": 240,
+      "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
+      "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
+    },
+    {
+      "bytes": 240,
+      "path": "generated/subscriptions/v2ray_nodes.txt",
+      "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
+    }
+  ],
+  "publish_node": "us_sea_bgp_01",
+  "published_nodes": [
+    "GG-Vmrack1"
+  ],
+  "remote_config_dir": "/srv/proxy-subscriptions/config",
+  "remote_container_config": "/etc/containers/systemd/gg-proxy-subscriptions.container",
+  "remote_public_root": "/srv/proxy-subscriptions/public",
+  "remote_subscriptions_dir": "/srv/proxy-subscriptions/public/subscriptions",
+  "schema": "gg.proxy.subscription.publish.v1",
+  "source": "repos/proxy_ops_private/scripts/render_artifacts.py",
+  "subscription_base_url": "https://subs.sea.prod.gglohh.top/subscriptions"
+}

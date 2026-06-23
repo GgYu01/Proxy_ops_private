@@ -9,6 +9,7 @@ unified-delay: true
 tcp-concurrent: true
 geodata-mode: false
 external-controller: 127.0.0.1:9090
+external-ui: ui
 profile:
   store-selected: true
   store-fake-ip: true
@@ -50,48 +51,6 @@ dns:
   fallback-filter:
     geoip: false
 proxies:
-- name: GG-US-SEA-BGP-01
-  type: vless
-  server: 69.5.53.82
-  port: 10003
-  uuid: c8471f9b-37d4-4d7d-9787-07d80ca06557
-  network: tcp
-  tls: true
-  udp: true
-  flow: xtls-rprx-vision
-  servername: www.microsoft.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: ZpOH8N0bk-rey0pU2hqOLAGH_LnYMRi4HxVbbgP5nig
-    short-id: 3465c78a4b49ca4e
-- name: GG-Lisa-Stable
-  type: vless
-  server: 38.34.8.59
-  port: 10003
-  uuid: 5be04bd0-6f4b-4049-a5b7-414176753a51
-  network: tcp
-  tls: true
-  udp: true
-  flow: xtls-rprx-vision
-  servername: www.microsoft.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: G5mH1KsIAb4JxYRBnrC1TIQhOcRp8GHlxa25LfhvvhY
-    short-id: 697399025775544e
-- name: GG-Lisahost-KR
-  type: vless
-  server: 203.227.191.106
-  port: 10003
-  uuid: 9abe7d0b-a6dc-43ca-a4ac-6e890eefc12d
-  network: tcp
-  tls: true
-  udp: true
-  flow: xtls-rprx-vision
-  servername: www.microsoft.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: YVC8FX9dj8m0tUek-XrV2GSGU5fgsr8PhNUDfcWeHV4
-    short-id: b8e79d51a7c07e3e
 - name: GG-Vmrack1
   type: vless
   server: 38.65.93.39
@@ -106,55 +65,17 @@ proxies:
   reality-opts:
     public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
     short-id: e0924c6d9062f4d5
-- name: GG-Vmrack2
-  type: vless
-  server: 38.65.93.94
-  port: 10003
-  uuid: 65ba322b-7d6a-4428-8c32-f6d5f635b283
-  network: tcp
-  tls: true
-  udp: true
-  flow: xtls-rprx-vision
-  servername: www.microsoft.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: cFRblQp7JM-Uo4piDmhbEdKBBbS1w4NwnqJFhnE01S0
-    short-id: 8ed50d6631f38183
-- name: GG-Dedirock
-  type: vless
-  server: 67.215.238.140
-  port: 10003
-  uuid: a6b593d0-4c12-426d-bf59-981161d13262
-  network: tcp
-  tls: true
-  udp: true
-  flow: xtls-rprx-vision
-  servername: www.microsoft.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI
-    short-id: 38b9604a52692bd9
 proxy-groups:
 - name: PROXY
   type: select
   proxies:
-  - GG-US-SEA-BGP-01
-  - Auto
-  - GG-Lisa-Stable
-  - GG-Lisahost-KR
   - GG-Vmrack1
-  - GG-Vmrack2
-  - GG-Dedirock
+  - Auto
   - DIRECT
 - name: Auto
   type: url-test
   proxies:
-  - GG-US-SEA-BGP-01
-  - GG-Lisa-Stable
-  - GG-Lisahost-KR
   - GG-Vmrack1
-  - GG-Vmrack2
-  - GG-Dedirock
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 80
@@ -260,6 +181,19 @@ rules:
 - DOMAIN-SUFFIX,cursor-cdn.com,DIRECT
 - DOMAIN-SUFFIX,anysphere.co,DIRECT
 - DOMAIN-SUFFIX,anysphere.inc,DIRECT
+# === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
+# Only official OpenAI-family destination domains are forced through PROXY.
+# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
+# over-route OpenAI-compatible relay domains.
+# === END OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
+- DOMAIN-SUFFIX,openai.com,PROXY
+- DOMAIN-SUFFIX,chatgpt.com,PROXY
+- DOMAIN-SUFFIX,oaistatic.com,PROXY
+- DOMAIN-SUFFIX,oaiusercontent.com,PROXY
+- DOMAIN-SUFFIX,oaistatsig.com,PROXY
+- DOMAIN-SUFFIX,auth.openai.com,PROXY
+- DOMAIN-SUFFIX,auth0.openai.com,PROXY
+- DOMAIN-SUFFIX,cdn.openaimerge.com,PROXY
 # === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the
@@ -280,8 +214,9 @@ rules:
 # This editable block contains DIRECT process protections.
 # This profile is for users in mainland China: private, China, Apple China,
 # Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
-# cloud sync / update, and subscription update traffic stay DIRECT; non-mainland
-# fallback traffic uses PROXY.
+# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
+# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
+# PROXY.
 # To stop protecting one DIRECT process, comment out its line. Keep these
 # process rules explicit and predictable.
 - PROCESS-NAME,QQ.exe,DIRECT
@@ -324,48 +259,49 @@ rules:
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Cursor\*,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Kingsoft\WPS Office\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,DIRECT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*,DIRECT
 - PROCESS-PATH-WILDCARD,/Applications/Cursor.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT Atlas.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Applications/Codex.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT Atlas.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Codex.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/usr/bin/cursor*,DIRECT
+- PROCESS-PATH-WILDCARD,/opt/chatgpt/*,DIRECT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt*,DIRECT
+- PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,DIRECT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,DIRECT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,DIRECT
+- PROCESS-PATH-WILDCARD,/opt/codex/*,DIRECT
+- PROCESS-PATH,/usr/bin/codex,DIRECT
 # === END USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # === USER-EDITABLE PROCESS PROXY OVERRIDES ===
 # These narrow PROXY overrides target Simprint's Chrome profile browser plus
-# selected AI/developer desktop app install paths: Antigravity, ChatGPT,
-# ChatGPT Atlas, and Codex. They deliberately do not target shared runtimes
-# such as msedgewebview2.exe, node, or python.
+# selected non-OpenAI developer desktop app install paths: Antigravity.
+# OpenAI-family desktop app paths are DIRECT fallbacks; official OpenAI domains
+# are proxied by destination rules above. These overrides deliberately do not
+# target shared runtimes such as msedgewebview2.exe, node, or python.
 # Comment individual lines out to route that app by destination rules only.
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,PROXY
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe,PROXY
 - PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity\*,PROXY
 - PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity*\*,PROXY
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Antigravity\*,PROXY
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe,PROXY
-- PROCESS-PATH-WILDCARD,C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*,PROXY
-- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,PROXY
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,PROXY
-- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,PROXY
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*,PROXY
 - PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Applications/ChatGPT.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Applications/ChatGPT Atlas.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Applications/Codex.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/Users/*/Applications/Antigravity.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT Atlas.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/Codex.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
-- PROCESS-PATH-WILDCARD,/opt/chatgpt/*,PROXY
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt*,PROXY
-- PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,PROXY
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,PROXY
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,PROXY
-- PROCESS-PATH-WILDCARD,/opt/codex/*,PROXY
-- PROCESS-PATH,/usr/bin/codex,PROXY
 # === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
 # Domain and DustinWin/ruleset_geodata rules start below.
-- DOMAIN,69.5.53.82,DIRECT
-- DOMAIN-SUFFIX,69.5.53.82,DIRECT
+- DOMAIN,subs.sea.prod.gglohh.top,DIRECT
+- DOMAIN-SUFFIX,subs.sea.prod.gglohh.top,DIRECT
 - RULE-SET,privateip,DIRECT,no-resolve
 - RULE-SET,ads,REJECT
 - RULE-SET,apple-cn,DIRECT

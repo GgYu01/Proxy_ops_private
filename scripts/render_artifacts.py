@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import html
+import hashlib
 import json
 import os
 import sys
@@ -19,9 +20,14 @@ from subscription_node_availability import (
     ensure_minimum_published_nodes,
     exclusion_report,
     refresh_availability,
-    subscription_eligible_nodes,
+    subscription_publishable_nodes,
 )
 PUBLIC_SUBSCRIPTIONS_HOST = "proxy-subscriptions.svc.prod.lab.gglohh.top"
+SUBSCRIPTION_CONTAINER_NAME = "gg-proxy-subscriptions"
+SUBSCRIPTION_CONTAINER_IMAGE = "docker.io/library/busybox:1.37"
+SUBSCRIPTION_CONTAINER_COMMAND = "httpd -f -p 80 -h /www"
+SUBSCRIPTION_CONTAINER_PORT = 80
+SUBSCRIPTION_TRAEFIK_CERT_RESOLVER = "cf-staging"
 
 DUSTINWIN_MIHOMO_RULESET_BASE_URL = (
     "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset"
@@ -55,6 +61,17 @@ WPS_DIRECT_DOMAIN_SUFFIXES = [
 
 WPS_DIRECT_DOMAIN_KEYWORDS = [
     "kingsoft",
+]
+
+OPENAI_PROXY_DOMAIN_SUFFIXES = [
+    "openai.com",
+    "chatgpt.com",
+    "oaistatic.com",
+    "oaiusercontent.com",
+    "oaistatsig.com",
+    "auth.openai.com",
+    "auth0.openai.com",
+    "cdn.openaimerge.com",
 ]
 
 DIRECT_PROCESS_NAMES_BY_PLATFORM = {
@@ -152,12 +169,31 @@ DIRECT_PROCESS_PATHS_BY_PLATFORM = {
         r"C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe",
         r"C:\Users\*\AppData\Local\Programs\Cursor\*",
         r"C:\Users\*\AppData\Local\Kingsoft\WPS Office\*",
+        r"C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe",
+        r"C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*",
+        r"C:\Program Files\OpenAI\ChatGPT\*",
+        r"C:\Users\*\AppData\Local\Programs\ChatGPT\*",
+        r"C:\Program Files\OpenAI\ChatGPT Atlas\*",
+        r"C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*",
     ],
     "macos": [
         "/Applications/Cursor.app/Contents/*",
+        "/Applications/ChatGPT.app/Contents/*",
+        "/Applications/ChatGPT Atlas.app/Contents/*",
+        "/Applications/Codex.app/Contents/*",
+        "/Users/*/Applications/ChatGPT.app/Contents/*",
+        "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
+        "/Users/*/Applications/Codex.app/Contents/*",
     ],
     "linux": [
         "/usr/bin/cursor*",
+        "/opt/chatgpt/*",
+        "/usr/bin/chatgpt*",
+        "/opt/chatgpt-atlas/*",
+        "/usr/bin/chatgpt-atlas*",
+        "/usr/bin/chatgptatlas*",
+        "/opt/codex/*",
+        "/usr/bin/codex",
     ],
 }
 
@@ -199,34 +235,15 @@ PROXY_PROCESS_PATHS_BY_PLATFORM = {
         r"C:\Program Files\Google\Antigravity\*",
         r"C:\Program Files\Google\Antigravity*\*",
         r"C:\Users\*\AppData\Local\Programs\Antigravity\*",
-        r"C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe",
-        r"C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*",
-        r"C:\Program Files\OpenAI\ChatGPT\*",
-        r"C:\Users\*\AppData\Local\Programs\ChatGPT\*",
-        r"C:\Program Files\OpenAI\ChatGPT Atlas\*",
-        r"C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*",
     ],
     "macos": [
         "/Applications/Antigravity.app/Contents/*",
-        "/Applications/ChatGPT.app/Contents/*",
-        "/Applications/ChatGPT Atlas.app/Contents/*",
-        "/Applications/Codex.app/Contents/*",
         "/Users/*/Applications/Antigravity.app/Contents/*",
-        "/Users/*/Applications/ChatGPT.app/Contents/*",
-        "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
-        "/Users/*/Applications/Codex.app/Contents/*",
     ],
     "linux": [
         "/opt/Antigravity/*",
         "/opt/antigravity/*",
         "/usr/bin/antigravity*",
-        "/opt/chatgpt/*",
-        "/usr/bin/chatgpt*",
-        "/opt/chatgpt-atlas/*",
-        "/usr/bin/chatgpt-atlas*",
-        "/usr/bin/chatgptatlas*",
-        "/opt/codex/*",
-        "/usr/bin/codex",
     ],
 }
 
@@ -264,6 +281,10 @@ def public_subscriptions_host(repo_root: Path = REPO_ROOT) -> str:
     subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
     host = urllib.parse.urlparse(subscriptions["subscription_base_url"]).hostname
     return host or PUBLIC_SUBSCRIPTIONS_HOST
+
+
+def publish_config(repo_root: Path = REPO_ROOT) -> dict:
+    return dict(load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml").get("publish") or {})
 
 
 def load_node_secrets(repo_root: Path, node_name: str) -> dict[str, str]:
@@ -322,8 +343,12 @@ def first_server_name(node: dict) -> str:
     return names[0].strip()
 
 
+def node_public_host(node: dict) -> str:
+    return str(node["host"])
+
+
 def vless_link(node: dict) -> str:
-    host = node["host"]
+    host = node_public_host(node)
     port = int(node["base_port"]) + 3
     secrets = node["secrets"]
     alias = urllib.parse.quote(node["subscription_alias"])
@@ -343,7 +368,7 @@ def mihomo_proxy_for_node(node: dict) -> dict:
     return {
         "name": str(node["subscription_alias"]),
         "type": "vless",
-        "server": str(node["host"]),
+        "server": node_public_host(node),
         "port": int(node["base_port"]) + 3,
         "uuid": secrets["VLESS_UUID"],
         "network": "tcp",
@@ -433,6 +458,12 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # including apps with process-level PROXY overrides.
 # === END HIGHEST PRIORITY CURSOR DOMAIN DIRECT PROTECTIONS ===
 """
+    openai_domain_help = """# === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
+# Only official OpenAI-family destination domains are forced through PROXY.
+# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
+# over-route OpenAI-compatible relay domains.
+# === END OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
+"""
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the
@@ -443,17 +474,19 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # This editable block contains DIRECT process protections.
 # This profile is for users in mainland China: private, China, Apple China,
 # Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
-# cloud sync / update, and subscription update traffic stay DIRECT; non-mainland
-# fallback traffic uses PROXY.
+# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
+# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
+# PROXY.
 # To stop protecting one DIRECT process, comment out its line. Keep these
 # process rules explicit and predictable.
 """
     direct_end_help = """# === END USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # === USER-EDITABLE PROCESS PROXY OVERRIDES ===
 # These narrow PROXY overrides target Simprint's Chrome profile browser plus
-# selected AI/developer desktop app install paths: Antigravity, ChatGPT,
-# ChatGPT Atlas, and Codex. They deliberately do not target shared runtimes
-# such as msedgewebview2.exe, node, or python.
+# selected non-OpenAI developer desktop app install paths: Antigravity.
+# OpenAI-family desktop app paths are DIRECT fallbacks; official OpenAI domains
+# are proxied by destination rules above. These overrides deliberately do not
+# target shared runtimes such as msedgewebview2.exe, node, or python.
 # Comment individual lines out to route that app by destination rules only.
 """
     proxy_end_help = """# === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
@@ -465,6 +498,9 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # Domain and DustinWin/ruleset_geodata rules start below.
 """
     yaml_text = yaml_text.replace("rules:\n", cursor_domain_help, 1)
+    first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,PROXY"
+    if first_openai_domain_rule in yaml_text:
+        yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
     first_wps_domain_rule = "- DOMAIN-KEYWORD,kingsoft,DIRECT"
     if first_wps_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_wps_domain_rule, wps_domain_help + first_wps_domain_rule, 1)
@@ -502,6 +538,10 @@ def mihomo_wps_domain_direct_rules() -> list[str]:
     ]
 
 
+def mihomo_openai_domain_proxy_rules() -> list[str]:
+    return [f"DOMAIN-SUFFIX,{domain},PROXY" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
+
+
 def mihomo_direct_process_rules(platform: str) -> list[str]:
     process_names = mihomo_process_values(DIRECT_PROCESS_NAMES_BY_PLATFORM, platform)
     process_paths = mihomo_process_values(DIRECT_PROCESS_PATHS_BY_PLATFORM, platform)
@@ -537,7 +577,7 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
 
 
 def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
-    nodes = subscription_eligible_nodes(repo_root)
+    nodes = subscription_publishable_nodes(repo_root)
     proxy_names = [str(node["subscription_alias"]) for node in nodes]
     default_proxy = "PROXY"
     subscription_host = public_subscriptions_host(repo_root)
@@ -553,6 +593,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         "tcp-concurrent": True,
         "geodata-mode": False,
         "external-controller": "127.0.0.1:9090",
+        "external-ui": "ui",
         "profile": {
             "store-selected": True,
             "store-fake-ip": True,
@@ -590,6 +631,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         },
         "rules": [
             *mihomo_cursor_domain_direct_rules(),
+            *mihomo_openai_domain_proxy_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
@@ -616,34 +658,17 @@ def single_node_subscription_filename(node_name: str) -> str:
     return f"v2ray_node_{node_name}.txt"
 
 
-def single_node_hiddify_import_filename(node_name: str) -> str:
-    return f"hiddify_import_{node_name}.txt"
-
-
 def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None = None) -> str:
     if node_name is None:
-        nodes = subscription_eligible_nodes(repo_root)
+        nodes = subscription_publishable_nodes(repo_root)
     else:
-        eligible_names = {node["name"] for node in subscription_eligible_nodes(repo_root)}
+        eligible_names = {node["name"] for node in subscription_publishable_nodes(repo_root)}
         if node_name not in eligible_names:
             return ""
         nodes = [enabled_node_by_name(repo_root, node_name)]
     if not nodes:
         return ""
     return "\n".join(vless_link(node) for node in nodes) + "\n"
-
-
-def render_hiddify_import(repo_root: Path = REPO_ROOT, node_name: str | None = None) -> str:
-    subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
-    base_url = subscriptions["subscription_base_url"].rstrip("/")
-    if node_name is None:
-        subscription_url = base_url + "/v2ray_nodes.txt"
-        profile_name = subscriptions["hiddify_fragment_name"]
-    else:
-        node = enabled_node_by_name(repo_root, node_name)
-        subscription_url = base_url + f"/{single_node_subscription_filename(node_name)}"
-        profile_name = node["subscription_alias"]
-    return f"hiddify://import/{subscription_url}#{urllib.parse.quote(profile_name)}\n"
 
 
 def render_singbox_remote_profile(repo_root: Path = REPO_ROOT) -> str:
@@ -686,7 +711,7 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
     node_sections: list[str] = []
     availability = exclusion_report(repo_root)
     pending_names = set(availability.pending)
-    for index, node in enumerate(subscription_eligible_nodes(repo_root), start=1):
+    for index, node in enumerate(subscription_publishable_nodes(repo_root), start=1):
         node_name = str(node["name"])
         alias = html.escape(str(node["subscription_alias"]))
         provider = html.escape(str(node.get("provider", "unknown")))
@@ -1043,7 +1068,7 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
         <p class="hero-copy">一个明亮、免登录、可直接复制的订阅入口。Clash Verge Rev / mihomo 配置优先，同时保留 VLESS URL 和 sing-box Remote Profile 兼容入口。</p>
       </div>
       <div class="status-board" aria-label="订阅状态摘要">
-        <div class="metric"><strong>{len(subscription_eligible_nodes(repo_root))}</strong><span>可发布节点</span></div>
+        <div class="metric"><strong>{len(subscription_publishable_nodes(repo_root))}</strong><span>健康发布节点</span></div>
         <div class="metric"><strong>{subscriptions["update_interval_hours"]}h</strong><span>建议更新周期</span></div>
         <div class="metric"><strong>{public_port}</strong><span>订阅入口端口</span></div>
         <div class="metric"><strong>KR</strong><span>新增区域</span></div>
@@ -1169,7 +1194,7 @@ def proxy_outbound_for_node(node: dict) -> dict:
     return {
         "type": "vless",
         "tag": f"proxy_{node['name']}",
-        "server": node["host"],
+        "server": node_public_host(node),
         "server_port": int(node["base_port"]) + 3,
         "uuid": secrets["VLESS_UUID"],
         "flow": "xtls-rprx-vision",
@@ -1191,7 +1216,7 @@ def proxy_outbound_for_node(node: dict) -> dict:
 
 
 def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
-    nodes = subscription_eligible_nodes(repo_root)
+    nodes = subscription_publishable_nodes(repo_root)
     aliases = ", ".join(str(node["subscription_alias"]) for node in nodes)
     process_sections = []
     for platform in ("windows", "macos", "linux"):
@@ -1242,11 +1267,13 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when the destination is not matched by the mainland China/private direct rules.
-- Antigravity, ChatGPT, ChatGPT Atlas, Codex, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
+- Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
+- OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
+- Antigravity and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.
-- Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules for the AI/developer apps above, while stable Microsoft Edge, WebView2, node, and python remain destination-rule based.
+- Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules only where process identity is the right control; OpenAI-family apps remain destination-rule based with DIRECT app fallbacks.
 - Cursor domain rules are the highest-priority DIRECT rules and are evaluated before process rules, so Cursor destinations stay direct no matter which app opens them. The first rule is fuzzy `DOMAIN-KEYWORD,cursor,DIRECT`, followed by explicit suffixes: `cursor.sh`, `cursor.com`, `cursorapi.com`, `cursor-cdn.com`, `anysphere.co`, and `anysphere.inc`.
 - Cursor is also protected by DIRECT process rules in this profile.
 - WPS / Kingsoft domain rules are evaluated after Cursor and before process rules. The first rule is `DOMAIN-KEYWORD,kingsoft,DIRECT`, followed by suffixes: {", ".join(f"`{domain}`" for domain in WPS_DIRECT_DOMAIN_SUFFIXES)}.
@@ -1271,6 +1298,78 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 """
 
 
+def render_subscription_container_config(repo_root: Path = REPO_ROOT) -> str:
+    publish = publish_config(repo_root)
+    remote_public_root = str(publish.get("remote_public_root") or "/srv/proxy-subscriptions/public")
+    subscription_host = public_subscriptions_host(repo_root)
+    return f"""[Unit]
+Description=GG Proxy Subscriptions Static Service
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image={SUBSCRIPTION_CONTAINER_IMAGE}
+ContainerName={SUBSCRIPTION_CONTAINER_NAME}
+Exec={SUBSCRIPTION_CONTAINER_COMMAND}
+Volume={remote_public_root}:/www:ro,Z
+Label=traefik.enable=true
+Label=traefik.http.routers.sea-subs.rule=Host(`{subscription_host}`)
+Label=traefik.http.routers.sea-subs.entrypoints=websecure
+Label=traefik.http.routers.sea-subs.tls=true
+Label=traefik.http.routers.sea-subs.tls.certresolver={SUBSCRIPTION_TRAEFIK_CERT_RESOLVER}
+Label=traefik.http.routers.sea-subs.service=sea-subs
+Label=traefik.http.services.sea-subs.loadbalancer.server.port={SUBSCRIPTION_CONTAINER_PORT}
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def render_subscription_publish_manifest(repo_root: Path = REPO_ROOT) -> str:
+    subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
+    publish = publish_config(repo_root)
+    subscriptions_dir = repo_root / "generated" / "subscriptions"
+    config_path = repo_root / "generated" / "publish" / "sea-bgp" / f"{SUBSCRIPTION_CONTAINER_NAME}.container"
+    generated_files = []
+    for path in sorted(subscriptions_dir.glob("*")):
+        if path.is_file():
+            generated_files.append(
+                {
+                    "path": str(path.relative_to(repo_root)).replace("\\", "/"),
+                    "sha256": _sha256_file(path),
+                    "bytes": path.stat().st_size,
+                }
+            )
+    payload = {
+        "schema": "gg.proxy.subscription.publish.v1",
+        "source": "repos/proxy_ops_private/scripts/render_artifacts.py",
+        "subscription_base_url": subscriptions["subscription_base_url"],
+        "publish_node": publish.get("node"),
+        "remote_public_root": publish.get("remote_public_root"),
+        "remote_subscriptions_dir": publish.get("remote_subscriptions_dir"),
+        "remote_config_dir": publish.get("remote_config_dir"),
+        "remote_container_config": publish.get("remote_container_config"),
+        "container_config": {
+            "path": str(config_path.relative_to(repo_root)).replace("\\", "/"),
+            "sha256": _sha256_file(config_path),
+            "container_name": SUBSCRIPTION_CONTAINER_NAME,
+            "image": SUBSCRIPTION_CONTAINER_IMAGE,
+            "command": SUBSCRIPTION_CONTAINER_COMMAND,
+            "traefik_host": public_subscriptions_host(repo_root),
+        },
+        "published_nodes": [str(node["subscription_alias"]) for node in subscription_publishable_nodes(repo_root)],
+        "generated_files": generated_files,
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -1284,15 +1383,15 @@ def remove_legacy_mihomo_platform_profiles(repo_root: Path = REPO_ROOT) -> None:
             path.unlink()
 
 
-def remove_legacy_hiddify_import_files(repo_root: Path = REPO_ROOT) -> None:
+def remove_legacy_import_deep_link_files(repo_root: Path = REPO_ROOT) -> None:
     subscriptions_dir = repo_root / "generated" / "subscriptions"
-    for path in subscriptions_dir.glob("hiddify_import*.txt"):
+    for path in subscriptions_dir.glob("*_import*.txt"):
         path.unlink()
 
 
 def prune_stale_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> None:
     subscriptions_dir = repo_root / "generated" / "subscriptions"
-    eligible_names = {str(node["name"]) for node in subscription_eligible_nodes(repo_root)}
+    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
     for path in subscriptions_dir.glob("v2ray_node_*.txt"):
         node_name = path.name.removeprefix("v2ray_node_").removesuffix(".txt")
         if node_name not in eligible_names:
@@ -1301,7 +1400,7 @@ def prune_stale_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> None:
 
 def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
     refresh_availability(repo_root)
-    eligible = subscription_eligible_nodes(repo_root)
+    eligible = subscription_publishable_nodes(repo_root)
     ensure_minimum_published_nodes(repo_root, eligible)
     report = exclusion_report(repo_root)
     if report.excluded or report.pending:
@@ -1311,7 +1410,7 @@ def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
         )
 
     remove_legacy_mihomo_platform_profiles(repo_root)
-    remove_legacy_hiddify_import_files(repo_root)
+    remove_legacy_import_deep_link_files(repo_root)
     write_text(repo_root / "generated" / "subscriptions" / "index.html", render_subscription_landing_page(repo_root))
     write_text(repo_root / "generated" / "subscriptions" / "v2ray_nodes.txt", render_v2ray_subscription(repo_root))
     for node in eligible:
@@ -1328,6 +1427,14 @@ def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
         repo_root / "generated" / "subscriptions" / "mihomo-process-routing.md",
         render_mihomo_process_routing_notes(repo_root),
     )
+    write_text(
+        repo_root / "generated" / "publish" / "sea-bgp" / f"{SUBSCRIPTION_CONTAINER_NAME}.container",
+        render_subscription_container_config(repo_root),
+    )
+    write_text(
+        repo_root / "generated" / "publish" / "sea-bgp" / "subscription-publish-manifest.json",
+        render_subscription_publish_manifest(repo_root),
+    )
 
 
 def main() -> None:
@@ -1336,5 +1443,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

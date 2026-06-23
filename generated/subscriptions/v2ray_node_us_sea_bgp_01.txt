@@ -1,1 +1,0 @@
-vless://c8471f9b-37d4-4d7d-9787-07d80ca06557@69.5.53.82:10003?security=reality&encryption=none&pbk=ZpOH8N0bk-rey0pU2hqOLAGH_LnYMRi4HxVbbgP5nig&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=3465c78a4b49ca4e#GG-US-SEA-BGP-01

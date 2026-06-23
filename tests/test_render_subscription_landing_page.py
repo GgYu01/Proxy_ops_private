@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -20,7 +22,40 @@ def load_module():
     return module
 
 
+def write_healthy_fixture(repo_root: Path) -> None:
+    (repo_root / "state").mkdir(parents=True)
+    (repo_root / "state" / "node_availability.json").write_text(
+        json.dumps(
+            {
+                "updated_at": "2026-06-23T00:00:00Z",
+                "nodes": {
+                    name: {
+                        "last_probe_at": "2026-06-23T00:00:00Z",
+                        "last_health": "healthy",
+                        "unavailable_since": None,
+                        "last_success_at": "2026-06-23T00:00:00Z",
+                        "detail": "fixture real proxy probe passed",
+                    }
+                    for name in ("us_sea_bgp_01", "lisahost_kr", "dedirock")
+                },
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+
 class SubscriptionLandingPageRenderTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._old_skip_probe = os.environ.get("SKIP_AVAILABILITY_PROBE")
+        os.environ["SKIP_AVAILABILITY_PROBE"] = "1"
+
+    def tearDown(self) -> None:
+        if self._old_skip_probe is None:
+            os.environ.pop("SKIP_AVAILABILITY_PROBE", None)
+        else:
+            os.environ["SKIP_AVAILABILITY_PROBE"] = self._old_skip_probe
+
     def test_write_generated_artifacts_emits_subscription_landing_page(self) -> None:
         render_artifacts = load_module()
 
@@ -34,6 +69,7 @@ class SubscriptionLandingPageRenderTests(unittest.TestCase):
                 repo_root / "inventory" / "subscriptions.yaml",
             )
             shutil.copytree(REPO_ROOT / "secrets" / "nodes", repo_root / "secrets" / "nodes")
+            write_healthy_fixture(repo_root)
 
             render_artifacts.write_generated_artifacts(repo_root)
 
@@ -45,7 +81,7 @@ class SubscriptionLandingPageRenderTests(unittest.TestCase):
             self.assertIn("不需要用户名密码", landing_page)
             self.assertIn("/subscriptions/v2ray_nodes.txt", landing_page)
             self.assertIn("mihomo-universal.yaml", landing_page)
-            self.assertNotIn("hiddify://import/", landing_page)
+            self.assertIn("sing-box", landing_page)
             self.assertIn("GG-Lisahost-KR", landing_page)
             self.assertIn("GG-Dedirock", landing_page)
             self.assertIn("GG-US-SEA-BGP-01", landing_page)

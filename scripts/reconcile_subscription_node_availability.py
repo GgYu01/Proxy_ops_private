@@ -18,13 +18,18 @@ from subscription_node_availability import (
     probe_nodes,
     refresh_availability,
     subscription_eligible_nodes,
+    subscription_publishable_nodes,
     update_ledger,
 )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Probe proxy nodes and maintain subscription availability ledger.")
-    parser.add_argument("--probe", action="store_true", help="Run TCP probes and update the ledger.")
+    parser.add_argument(
+        "--probe",
+        action="store_true",
+        help="Run the configured real proxy availability probe and update the ledger.",
+    )
     parser.add_argument("--report", action="store_true", help="Print inclusion/exclusion report.")
     parser.add_argument("--dry-run", action="store_true", help="With --probe, probe but do not write ledger.")
     args = parser.parse_args()
@@ -41,7 +46,8 @@ def main() -> int:
 
     report = exclusion_report(REPO_ROOT)
     eligible = subscription_eligible_nodes(REPO_ROOT)
-    print(f"[INFO] eligible_nodes={len(eligible)} included={report.included} pending={report.pending} excluded={report.excluded} unknown={report.unknown}")
+    publishable = subscription_publishable_nodes(REPO_ROOT)
+    print(f"[INFO] eligible_nodes={len(eligible)} publishable_nodes={len(publishable)} included={report.included} pending={report.pending} excluded={report.excluded} unknown={report.unknown}")
     if args.report:
         print(json.dumps(asdict(report), indent=2, ensure_ascii=False))
     return 0

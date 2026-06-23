@@ -6,18 +6,20 @@ Generated for the GG proxy subscription service.
 
 - Published profile: `mihomo-universal.yaml`
 - Node source: current enabled `Proxy_ops_private` inventory
-- Published VLESS Reality nodes: GG-US-SEA-BGP-01, GG-Lisa-Stable, GG-Lisahost-KR, GG-Vmrack1, GG-Vmrack2, GG-Dedirock
+- Published VLESS Reality nodes: GG-Vmrack1
 - Ruleset source: `DustinWin/ruleset_geodata` release asset `mihomo-ruleset`
 - TUN mode: enabled with `auto-route`, `auto-redirect`, `strict-route`, and DNS hijack for `any:53`
 
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when the destination is not matched by the mainland China/private direct rules.
-- Antigravity, ChatGPT, ChatGPT Atlas, Codex, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\Users\...\Simprint\simprint.exe`, not `C:\Users\...\Simprint\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
+- Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
+- OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
+- Antigravity and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\Users\...\Simprint\simprint.exe`, not `C:\Users\...\Simprint\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.
-- Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules for the AI/developer apps above, while stable Microsoft Edge, WebView2, node, and python remain destination-rule based.
+- Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules only where process identity is the right control; OpenAI-family apps remain destination-rule based with DIRECT app fallbacks.
 - Cursor domain rules are the highest-priority DIRECT rules and are evaluated before process rules, so Cursor destinations stay direct no matter which app opens them. The first rule is fuzzy `DOMAIN-KEYWORD,cursor,DIRECT`, followed by explicit suffixes: `cursor.sh`, `cursor.com`, `cursorapi.com`, `cursor-cdn.com`, `anysphere.co`, and `anysphere.inc`.
 - Cursor is also protected by DIRECT process rules in this profile.
 - WPS / Kingsoft domain rules are evaluated after Cursor and before process rules. The first rule is `DOMAIN-KEYWORD,kingsoft,DIRECT`, followed by suffixes: `kingsoft.com`, `kingsoft-office-service.com`, `wps.cn`, `wpscdn.cn`, `wpscdn.com`, `kdocs.cn`, `kdocs.com`, `ksosoft.com`, `ksord.com`, `wpsplus.com`.
@@ -73,6 +75,12 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe`
 - `C:\Users\*\AppData\Local\Programs\Cursor\*`
 - `C:\Users\*\AppData\Local\Kingsoft\WPS Office\*`
+- `C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe`
+- `C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*`
+- `C:\Program Files\OpenAI\ChatGPT\*`
+- `C:\Users\*\AppData\Local\Programs\ChatGPT\*`
+- `C:\Program Files\OpenAI\ChatGPT Atlas\*`
+- `C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*`
 
 ### Default process-level PROXY overrides
 
@@ -81,12 +89,6 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `C:\Program Files\Google\Antigravity\*`
 - `C:\Program Files\Google\Antigravity*\*`
 - `C:\Users\*\AppData\Local\Programs\Antigravity\*`
-- `C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe`
-- `C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*`
-- `C:\Program Files\OpenAI\ChatGPT\*`
-- `C:\Users\*\AppData\Local\Programs\ChatGPT\*`
-- `C:\Program Files\OpenAI\ChatGPT Atlas\*`
-- `C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*`
 
 ### Observed app process names, not proxied by default
 
@@ -134,17 +136,17 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 ### DIRECT process paths
 
 - `/Applications/Cursor.app/Contents/*`
+- `/Applications/ChatGPT.app/Contents/*`
+- `/Applications/ChatGPT Atlas.app/Contents/*`
+- `/Applications/Codex.app/Contents/*`
+- `/Users/*/Applications/ChatGPT.app/Contents/*`
+- `/Users/*/Applications/ChatGPT Atlas.app/Contents/*`
+- `/Users/*/Applications/Codex.app/Contents/*`
 
 ### Default process-level PROXY overrides
 
 - `/Applications/Antigravity.app/Contents/*`
-- `/Applications/ChatGPT.app/Contents/*`
-- `/Applications/ChatGPT Atlas.app/Contents/*`
-- `/Applications/Codex.app/Contents/*`
 - `/Users/*/Applications/Antigravity.app/Contents/*`
-- `/Users/*/Applications/ChatGPT.app/Contents/*`
-- `/Users/*/Applications/ChatGPT Atlas.app/Contents/*`
-- `/Users/*/Applications/Codex.app/Contents/*`
 
 ### Observed app process names, not proxied by default
 
@@ -187,12 +189,6 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 ### DIRECT process paths
 
 - `/usr/bin/cursor*`
-
-### Default process-level PROXY overrides
-
-- `/opt/Antigravity/*`
-- `/opt/antigravity/*`
-- `/usr/bin/antigravity*`
 - `/opt/chatgpt/*`
 - `/usr/bin/chatgpt*`
 - `/opt/chatgpt-atlas/*`
@@ -200,6 +196,12 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `/usr/bin/chatgptatlas*`
 - `/opt/codex/*`
 - `/usr/bin/codex`
+
+### Default process-level PROXY overrides
+
+- `/opt/Antigravity/*`
+- `/opt/antigravity/*`
+- `/usr/bin/antigravity*`
 
 ### Observed app process names, not proxied by default
 

@@ -3,11 +3,22 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SUBSCRIPTIONS_DIR="${ROOT_DIR}/generated/subscriptions"
+PUBLISH_CONFIG_DIR="${ROOT_DIR}/generated/publish/sea-bgp"
 SUBSCRIPTIONS_CONFIG="${ROOT_DIR}/inventory/subscriptions.yaml"
 NODES_CONFIG="${ROOT_DIR}/inventory/nodes.yaml"
-PYTHON="${PYTHON:-python3}"
-if ! command -v "${PYTHON}" >/dev/null 2>&1; then
+WORKSPACE_ROOT="$(cd "${ROOT_DIR}/../.." && pwd)"
+DEFAULT_WINDOWS_VENV_PYTHON="${WORKSPACE_ROOT}/.venv/Scripts/python.exe"
+if [[ -z "${PYTHON:-}" && -x "${DEFAULT_WINDOWS_VENV_PYTHON}" ]]; then
+  PYTHON="${DEFAULT_WINDOWS_VENV_PYTHON}"
+else
+  PYTHON="${PYTHON:-python3}"
+fi
+if ! command -v "${PYTHON}" >/dev/null 2>&1 && [[ ! -x "${PYTHON}" ]]; then
   PYTHON=python
+fi
+DEFAULT_WINDOWS_MIHOMO_BIN="/c/Tools/mihomo/mihomo-windows-amd64.exe"
+if [[ -z "${MIHOMO_BIN:-}" && -x "${DEFAULT_WINDOWS_MIHOMO_BIN}" ]]; then
+  export MIHOMO_BIN="${DEFAULT_WINDOWS_MIHOMO_BIN}"
 fi
 
 read_inventory_field() {
@@ -83,11 +94,28 @@ REMOTE_PASSWORD="${REMOTE_PASSWORD:-}"
 REMOTE_PUBLIC_ROOT="${REMOTE_PUBLIC_ROOT:-$(read_publish_node_field remote_public_root)}"
 REMOTE_PUBLIC_DIR="${REMOTE_PUBLIC_DIR:-$(read_publish_node_field remote_subscriptions_dir)}"
 REMOTE_STAGE_DIR="${REMOTE_STAGE_DIR:-${REMOTE_PUBLIC_DIR}.staging}"
+REMOTE_CONFIG_DIR="${REMOTE_CONFIG_DIR:-$(read_publish_node_field remote_config_dir)}"
+REMOTE_CONFIG_STAGE_DIR="${REMOTE_CONFIG_STAGE_DIR:-${REMOTE_CONFIG_DIR}.staging}"
+REMOTE_CONTAINER_CONFIG="${REMOTE_CONTAINER_CONFIG:-$(read_publish_node_field remote_container_config)}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-$(read_inventory_field "${SUBSCRIPTIONS_CONFIG}" subscription_base_url)}"
 PUBLIC_TEST_URL="${PUBLIC_TEST_URL:-$(read_publish_node_field verify_url)}"
 PUBLIC_LANDING_URL="${PUBLIC_LANDING_URL:-${PUBLIC_BASE_URL%/subscriptions}/}"
 PUBLIC_MIHOMO_URL="${PUBLIC_MIHOMO_URL:-${PUBLIC_BASE_URL%/}/mihomo-universal.yaml}"
-SYSTEMD_UNIT="${SYSTEMD_UNIT:-$(read_publish_node_field systemd_unit)}"
+SSH_BIN="${SSH_BIN:-ssh}"
+SSHPASS_BIN="${SSHPASS_BIN:-sshpass}"
+SUBSCRIPTION_CONTAINER_NAME="${SUBSCRIPTION_CONTAINER_NAME:-gg-proxy-subscriptions}"
+SUBSCRIPTION_CONTAINER_CONFIG_FILE="${SUBSCRIPTION_CONTAINER_CONFIG_FILE:-${PUBLISH_CONFIG_DIR}/${SUBSCRIPTION_CONTAINER_NAME}.container}"
+SUBSCRIPTION_PUBLISH_MANIFEST="${SUBSCRIPTION_PUBLISH_MANIFEST:-${PUBLISH_CONFIG_DIR}/subscription-publish-manifest.json}"
+SUBSCRIPTION_HOST="$("${PYTHON}" - "${PUBLIC_BASE_URL}" <<'PY'
+import sys
+from urllib.parse import urlparse
+
+host = urlparse(sys.argv[1]).hostname
+if not host:
+    raise SystemExit("[ERROR] subscription_base_url must include a hostname")
+print(host)
+PY
+)"
 
 if [[ "${REMOTE_HOST}" == "112.28.134.53" ]]; then
   echo "[ERROR] 112.28.134.53 is retired and must not be used as the subscription publish target." >&2
@@ -124,6 +152,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+SKIP_LOCAL_AVAILABILITY_PROBE="${SEA_SUBSCRIPTION_SKIP_LOCAL_PROBE:-0}"
+
 if [[ ! -d "${SUBSCRIPTIONS_DIR}" ]]; then
   echo "[ERROR] Missing generated subscriptions directory: ${SUBSCRIPTIONS_DIR}"
   exit 2
@@ -144,11 +174,11 @@ done
 
 run_ssh() {
   if [[ -n "${REMOTE_PASSWORD}" ]]; then
-    command -v sshpass >/dev/null 2>&1 || {
-      echo "[ERROR] REMOTE_PASSWORD was provided but sshpass is not installed." >&2
+    command -v "${SSHPASS_BIN}" >/dev/null 2>&1 || {
+      echo "[ERROR] REMOTE_PASSWORD was provided but sshpass is not installed: ${SSHPASS_BIN}" >&2
       exit 10
     }
-    SSHPASS="${REMOTE_PASSWORD}" sshpass -e ssh \
+    SSHPASS="${REMOTE_PASSWORD}" "${SSHPASS_BIN}" -e "${SSH_BIN}" \
       -o StrictHostKeyChecking=no \
       -o PreferredAuthentications=password \
       -o PubkeyAuthentication=no \
@@ -156,7 +186,7 @@ run_ssh() {
       "${SSH_TARGET}" \
       "$@"
   else
-    ssh -p "${REMOTE_PORT}" "${SSH_TARGET}" "$@"
+    "${SSH_BIN}" -p "${REMOTE_PORT}" "${SSH_TARGET}" "$@"
   fi
 }
 
@@ -164,19 +194,47 @@ echo "[INFO] Publish target: ${SSH_TARGET}:${REMOTE_PORT}"
 echo "[INFO] Publish node: ${PUBLISH_NODE}"
 echo "[INFO] Remote public root: ${REMOTE_PUBLIC_ROOT}"
 echo "[INFO] Remote subscriptions dir: ${REMOTE_PUBLIC_DIR}"
+echo "[INFO] Remote config dir: ${REMOTE_CONFIG_DIR}"
+echo "[INFO] Remote container config: ${REMOTE_CONTAINER_CONFIG}"
 echo "[INFO] Public landing URL: ${PUBLIC_LANDING_URL}"
 echo "[INFO] Public base URL: ${PUBLIC_BASE_URL}"
+echo "[INFO] Subscription container unit: ${SUBSCRIPTION_CONTAINER_NAME}"
+if [[ -f "${SUBSCRIPTION_CONTAINER_CONFIG_FILE}" ]]; then
+  echo "[INFO] Subscription container image: $(sed -n 's/^Image=//p' "${SUBSCRIPTION_CONTAINER_CONFIG_FILE}" | head -n 1)"
+  echo "[INFO] Subscription container command: $(sed -n 's/^Exec=//p' "${SUBSCRIPTION_CONTAINER_CONFIG_FILE}" | head -n 1)"
+else
+  echo "[INFO] Subscription container config pending generation: ${SUBSCRIPTION_CONTAINER_CONFIG_FILE}"
+fi
+echo "[INFO] Subscription container mount: ${REMOTE_PUBLIC_ROOT}:/www:ro,Z"
+echo "[INFO] Subscription public endpoint: HTTPS 443 via Traefik"
+echo "[INFO] Subscription Traefik rule: Host(\`${SUBSCRIPTION_HOST}\`)"
+echo "[INFO] Git-tracked publish config: ${SUBSCRIPTION_CONTAINER_CONFIG_FILE}"
+echo "[INFO] Git-tracked publish manifest: ${SUBSCRIPTION_PUBLISH_MANIFEST}"
 
 if [[ "${DRY_RUN}" -eq 1 ]]; then
   echo "[INFO] Planned files:"
   find "${SUBSCRIPTIONS_DIR}" -maxdepth 1 -type f | sed 's#^#  - #'
+  if [[ -d "${PUBLISH_CONFIG_DIR}" ]]; then
+    find "${PUBLISH_CONFIG_DIR}" -maxdepth 1 -type f | sed 's#^#  - #'
+  fi
   echo "[DRY-RUN] No remote changes applied."
   exit 0
 fi
 
-echo "[INFO] Regenerating subscription artifacts with availability probe"
-"${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
-"${PYTHON}" "${ROOT_DIR}/scripts/reconcile_subscription_node_availability.py" --report
+if [[ "${SKIP_LOCAL_AVAILABILITY_PROBE}" == "1" ]]; then
+  echo "[INFO] Regenerating subscription artifacts from existing availability ledger"
+  SKIP_AVAILABILITY_PROBE=1 "${PYTHON}" "${ROOT_DIR}/scripts/reconcile_subscription_node_availability.py" --report
+  SKIP_AVAILABILITY_PROBE=1 "${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
+else
+  echo "[INFO] Regenerating subscription artifacts with availability probe"
+  "${PYTHON}" "${ROOT_DIR}/scripts/reconcile_subscription_node_availability.py" --probe --report
+  "${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
+fi
+
+if [[ ! -f "${SUBSCRIPTION_CONTAINER_CONFIG_FILE}" || ! -f "${SUBSCRIPTION_PUBLISH_MANIFEST}" ]]; then
+  echo "[ERROR] Missing generated publish config. Run scripts/render_artifacts.py first." >&2
+  exit 12
+fi
 
 run_ssh "mkdir -p '${REMOTE_PUBLIC_ROOT}' && rm -rf '${REMOTE_STAGE_DIR}' && mkdir -p '${REMOTE_STAGE_DIR}'"
 tar czf - -C "${SUBSCRIPTIONS_DIR}" . | run_ssh "tar xzf - -C '${REMOTE_STAGE_DIR}'"
@@ -185,14 +243,27 @@ run_ssh "\
   if [ -d '${REMOTE_PUBLIC_DIR}' ]; then mv '${REMOTE_PUBLIC_DIR}' '${REMOTE_PUBLIC_DIR}.previous'; fi && \
   mv '${REMOTE_STAGE_DIR}' '${REMOTE_PUBLIC_DIR}' && \
   cp '${REMOTE_PUBLIC_DIR}/index.html' '${REMOTE_PUBLIC_ROOT}/index.html'"
-if run_ssh "systemctl is-active '${SYSTEMD_UNIT}' >/dev/null 2>&1"; then
-  run_ssh "systemctl reload-or-restart '${SYSTEMD_UNIT}'" || true
-fi
+run_ssh "mkdir -p '${REMOTE_CONFIG_DIR}' && rm -rf '${REMOTE_CONFIG_STAGE_DIR}' && mkdir -p '${REMOTE_CONFIG_STAGE_DIR}'"
+tar czf - -C "${PUBLISH_CONFIG_DIR}" . | run_ssh "tar xzf - -C '${REMOTE_CONFIG_STAGE_DIR}'"
+run_ssh "\
+  rm -rf '${REMOTE_CONFIG_DIR}.previous' && \
+  if [ -d '${REMOTE_CONFIG_DIR}' ]; then mv '${REMOTE_CONFIG_DIR}' '${REMOTE_CONFIG_DIR}.previous'; fi && \
+  mv '${REMOTE_CONFIG_STAGE_DIR}' '${REMOTE_CONFIG_DIR}'"
+run_ssh "install -d -m 0755 /etc/containers/systemd && install -m 0644 '${REMOTE_CONFIG_DIR}/${SUBSCRIPTION_CONTAINER_NAME}.container' '${REMOTE_CONTAINER_CONFIG}' && \
+systemctl daemon-reload
+systemctl enable '${SUBSCRIPTION_CONTAINER_NAME}.service' >/dev/null 2>&1 || true
+systemctl restart '${SUBSCRIPTION_CONTAINER_NAME}.service'"
 
 echo "[INFO] Verifying published subscription endpoint"
+MIHOMO_VERIFY_FILE="$(mktemp)"
+cleanup_verify_file() {
+  rm -f "${MIHOMO_VERIFY_FILE}"
+}
+trap cleanup_verify_file EXIT
 for attempt in $(seq 1 10); do
   if curl -fsS --max-time 15 "${PUBLIC_TEST_URL}" >/dev/null && \
-     curl -fsS --max-time 15 "${PUBLIC_MIHOMO_URL}" | grep -Eq 'PROCESS-NAME,wps\.exe|DOMAIN-SUFFIX,wps\.cn'; then
+     curl -fsS --max-time 15 "${PUBLIC_MIHOMO_URL}" -o "${MIHOMO_VERIFY_FILE}" && \
+     grep -Eq 'PROCESS-NAME,wps\.exe|DOMAIN-SUFFIX,wps\.cn' "${MIHOMO_VERIFY_FILE}"; then
     echo "[INFO] Subscription endpoint is ready on attempt ${attempt}."
     echo "[INFO] Subscription publish completed successfully."
     exit 0
