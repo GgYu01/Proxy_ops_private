@@ -2,6 +2,7 @@
 
 import html
 import hashlib
+import ipaddress
 import json
 import os
 import sys
@@ -20,6 +21,7 @@ from subscription_node_availability import (
     ensure_minimum_published_nodes,
     exclusion_report,
     refresh_availability,
+    registry_subscription_nodes,
     subscription_publishable_nodes,
 )
 PUBLIC_SUBSCRIPTIONS_HOST = "proxy-subscriptions.svc.prod.lab.gglohh.top"
@@ -542,6 +544,22 @@ def mihomo_openai_domain_proxy_rules() -> list[str]:
     return [f"DOMAIN-SUFFIX,{domain},PROXY" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
 
 
+def mihomo_proxy_node_direct_rules(repo_root: Path = REPO_ROOT) -> list[str]:
+    rules: list[str] = []
+    seen: set[str] = set()
+    for node in registry_subscription_nodes(repo_root):
+        host = node_public_host(node).strip()
+        try:
+            ipaddress.ip_address(host)
+        except ValueError as exc:
+            raise ValueError(f"proxy node DIRECT bootstrap rule requires an IP host for {node['name']}: {host}") from exc
+        if not host or host in seen:
+            continue
+        rules.append(f"IP-CIDR,{host}/32,DIRECT,no-resolve")
+        seen.add(host)
+    return rules
+
+
 def mihomo_direct_process_rules(platform: str) -> list[str]:
     process_names = mihomo_process_values(DIRECT_PROCESS_NAMES_BY_PLATFORM, platform)
     process_paths = mihomo_process_values(DIRECT_PROCESS_PATHS_BY_PLATFORM, platform)
@@ -631,6 +649,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         },
         "rules": [
             *mihomo_cursor_domain_direct_rules(),
+            *mihomo_proxy_node_direct_rules(repo_root),
             *mihomo_openai_domain_proxy_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),

@@ -11,8 +11,9 @@ usage() {
   cat <<'EOF'
 Usage: check_standalone_node.sh --node <node-name> [--dry-run]
 
-Required live env:
+Optional live env:
   REMOTE_PROXY_SSH_PASSWORD_<NODE>
+  If absent, the script uses the existing SSH key/agent configuration.
 
 Optional env:
   REMOTE_PROXY_SSH_USER
@@ -74,6 +75,6 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
   exit 0
 fi
 
-SSH_PASSWORD="$(standalone_node_require_ssh_password "${NODE}")"
-SSHPASS="${SSH_PASSWORD}" sshpass -e ssh "${SSH_OPTS[@]}" "${SSH_TARGET}" \
+SSH_PASSWORD="$(standalone_node_optional_ssh_password "${NODE}")"
+standalone_node_ssh "${SSH_PASSWORD}" "${SSH_OPTS[@]}" "${SSH_TARGET}" \
   "cd '${REMOTE_DIR}' && ${VERIFY_COMMAND} && systemctl is-active ${SYSTEMD_SERVICE} && systemctl cat ${SYSTEMD_SERVICE} && podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' | grep ${SYSTEMD_SERVICE}"

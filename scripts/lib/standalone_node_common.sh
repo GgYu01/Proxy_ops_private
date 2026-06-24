@@ -153,6 +153,25 @@ standalone_node_require_ssh_password() {
   printf '%s\n' "${password}"
 }
 
+standalone_node_optional_ssh_password() {
+  local node_name="$1"
+  local env_name="${REMOTE_PROXY_SSH_PASSWORD_ENV:-}"
+  if [[ -z "${env_name}" ]]; then
+    env_name="$(standalone_node_password_env_name "${node_name}")"
+  fi
+  printf '%s\n' "${!env_name:-}"
+}
+
+standalone_node_ssh() {
+  local password="$1"
+  shift
+  if [[ -n "${password}" ]]; then
+    SSHPASS="${password}" sshpass -e ssh "$@"
+    return
+  fi
+  ssh "$@"
+}
+
 standalone_node_prepare_bundle() {
   local root_dir="$1"
   local public_repo_dir="$2"

@@ -12,8 +12,9 @@ usage() {
   cat <<'EOF'
 Usage: apply_standalone_node.sh [--dry-run] --node <node-name>
 
-Required live env:
+Optional live env:
   REMOTE_PROXY_SSH_PASSWORD_<NODE>
+  If absent, the script uses the existing SSH key/agent configuration.
 
 Optional env:
   REMOTE_PROXY_SSH_USER
@@ -101,10 +102,10 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
   exit 0
 fi
 
-SSH_PASSWORD="$(standalone_node_require_ssh_password "${NODE}")"
+SSH_PASSWORD="$(standalone_node_optional_ssh_password "${NODE}")"
 
 run_ssh() {
-  SSHPASS="${SSH_PASSWORD}" sshpass -e ssh "${SSH_OPTS[@]}" "${SSH_TARGET}" "$@"
+  standalone_node_ssh "${SSH_PASSWORD}" "${SSH_OPTS[@]}" "${SSH_TARGET}" "$@"
 }
 
 remote_runtime_ready() {
@@ -115,7 +116,7 @@ echo "[INFO] Creating remote backup and preparing remote workdir..."
 run_ssh "mkdir -p '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}' && if [ -d '${REMOTE_DIR}' ]; then cp -a '${REMOTE_DIR}' '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}/remote_proxy_workdir'; fi && if [ -d '/etc/remote_proxy' ]; then cp -a '/etc/remote_proxy' '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}/etc_remote_proxy'; fi && if [ -d '/var/lib/remote_proxy' ]; then cp -a '/var/lib/remote_proxy' '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}/var_lib_remote_proxy'; fi && if [ -f '/etc/systemd/system/${SYSTEMD_SERVICE}.service' ]; then cp -a '/etc/systemd/system/${SYSTEMD_SERVICE}.service' '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}/${SYSTEMD_SERVICE}.service'; fi && if [ -f '/etc/containers/systemd/${SYSTEMD_SERVICE}.container' ]; then cp -a '/etc/containers/systemd/${SYSTEMD_SERVICE}.container' '${REMOTE_BACKUP_DIR}/${NODE}/${TIMESTAMP}/${SYSTEMD_SERVICE}.container'; fi && rm -rf '${REMOTE_DIR}' && mkdir -p '${REMOTE_DIR}'"
 
 echo "[INFO] Uploading bundle..."
-tar -C "${BUNDLE_DIR}" -czf - . | SSHPASS="${SSH_PASSWORD}" sshpass -e ssh "${SSH_OPTS[@]}" "${SSH_TARGET}" "tar -xzf - -C '${REMOTE_DIR}'"
+tar -C "${BUNDLE_DIR}" -czf - . | standalone_node_ssh "${SSH_PASSWORD}" "${SSH_OPTS[@]}" "${SSH_TARGET}" "tar -xzf - -C '${REMOTE_DIR}'"
 
 echo "[INFO] Running remote install..."
 INSTALL_ENV_PREFIX=""

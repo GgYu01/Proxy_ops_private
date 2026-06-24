@@ -177,7 +177,7 @@ class StandaloneNodeScriptTests(unittest.TestCase):
             self.assertIn("./scripts/service.sh cliproxy-plus verify", transport_log)
             self.assertIn("systemctl is-active cliproxy-plus", transport_log)
 
-    def test_apply_script_requires_password_env(self) -> None:
+    def test_apply_script_uses_existing_ssh_when_password_env_is_absent(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             temp_root = Path(tmp)
             self._write_private_fixture(temp_root)
@@ -204,8 +204,10 @@ class StandaloneNodeScriptTests(unittest.TestCase):
                 check=False,
             )
 
-            self.assertNotEqual(0, result.returncode)
-            self.assertIn("REMOTE_PROXY_SSH_PASSWORD_VMRACK1", result.stderr)
+            self.assertEqual(0, result.returncode, msg=result.stderr)
+            transport_log = log_path.read_text(encoding="utf-8")
+            self.assertIn("root@example.invalid", transport_log)
+            self.assertNotIn("sshpass", transport_log)
 
     def test_check_script_invokes_remote_verification_chain(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

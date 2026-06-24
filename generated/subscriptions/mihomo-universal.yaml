@@ -65,17 +65,33 @@ proxies:
   reality-opts:
     public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
     short-id: e0924c6d9062f4d5
+- name: GG-Dedirock
+  type: vless
+  server: 67.215.238.140
+  port: 10003
+  uuid: a6b593d0-4c12-426d-bf59-981161d13262
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.microsoft.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI
+    short-id: 38b9604a52692bd9
 proxy-groups:
 - name: PROXY
   type: select
   proxies:
   - GG-Vmrack1
   - Auto
+  - GG-Dedirock
   - DIRECT
 - name: Auto
   type: url-test
   proxies:
   - GG-Vmrack1
+  - GG-Dedirock
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 80
@@ -181,6 +197,12 @@ rules:
 - DOMAIN-SUFFIX,cursor-cdn.com,DIRECT
 - DOMAIN-SUFFIX,anysphere.co,DIRECT
 - DOMAIN-SUFFIX,anysphere.inc,DIRECT
+- IP-CIDR,69.5.53.82/32,DIRECT,no-resolve
+- IP-CIDR,38.34.8.59/32,DIRECT,no-resolve
+- IP-CIDR,203.227.191.106/32,DIRECT,no-resolve
+- IP-CIDR,38.65.93.39/32,DIRECT,no-resolve
+- IP-CIDR,38.65.93.94/32,DIRECT,no-resolve
+- IP-CIDR,67.215.238.140/32,DIRECT,no-resolve
 # === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
 # Only official OpenAI-family destination domains are forced through PROXY.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would

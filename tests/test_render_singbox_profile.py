@@ -121,6 +121,13 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertNotIn("@38.65.93.94:10003", v2ray)
         self.assertIsNotNone(re.search(r"vless://.*@(?:\d{1,3}\.){3}\d{1,3}", v2ray))
         self.assertNotIn(".proxy.prod.gglohh.top", v2ray)
+        self.assertIn("IP-CIDR,69.5.53.82/32,DIRECT,no-resolve", mihomo)
+        self.assertIn("IP-CIDR,38.65.93.39/32,DIRECT,no-resolve", mihomo)
+        self.assertIn("IP-CIDR,67.215.238.140/32,DIRECT,no-resolve", mihomo)
+        self.assertLess(
+            mihomo.index("IP-CIDR,69.5.53.82/32,DIRECT,no-resolve"),
+            mihomo.index("DOMAIN-SUFFIX,openai.com,PROXY"),
+        )
         self.assertEqual(
             "https://subs.sea.prod.gglohh.top/subscriptions/singbox-client-profile.json",
             singbox["url"],
