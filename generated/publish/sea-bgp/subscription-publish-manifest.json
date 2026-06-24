@@ -9,19 +9,19 @@
   },
   "generated_files": [
     {
-      "bytes": 15223,
+      "bytes": 14461,
       "path": "generated/subscriptions/index.html",
-      "sha256": "c87f58bd627bb6f97beeade7d0add86633bb2f50ef7511f042ae8892ccc8990b"
+      "sha256": "1d54b41be9b9ccdabee60b519a1d3f7b677774c1b678fd2721ee70114d10c5c0"
     },
     {
-      "bytes": 9457,
+      "bytes": 9444,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "7382e5dccb6bacc7bbb3a6dd0a14aa3bc5559ac3d1bb4c003c883764e414f668"
+      "sha256": "e97e82eb5716aa49764090d42c8984373575d0d2442304cc06eedd90ce363644"
     },
     {
-      "bytes": 12431,
+      "bytes": 12033,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "47f47fda671fa26f4bc6b28dfc00b5317a31fb6306563b85e49505ffa1417383"
+      "sha256": "58d53153c9f2801731fd58e8057a9a2a5e42ab63398f3c233a3bfe9713899bab"
     },
     {
       "bytes": 329,
@@ -34,25 +34,19 @@
       "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
     },
     {
-      "bytes": 244,
-      "path": "generated/subscriptions/v2ray_node_dedirock.txt",
-      "sha256": "c238471411e62767cc0c640f19a70cd6032a0acabe7ea4136c1018543f0dc7b6"
-    },
-    {
       "bytes": 240,
       "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
       "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
     },
     {
-      "bytes": 484,
+      "bytes": 240,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "ef62cf8587cd8f19f0c4449023824d5569618b0e11cdbc62a78c9f8cab7f72b2"
+      "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
     }
   ],
   "publish_node": "us_sea_bgp_01",
   "published_nodes": [
-    "GG-Vmrack1",
-    "GG-Dedirock"
+    "GG-Vmrack1"
   ],
   "remote_config_dir": "/srv/proxy-subscriptions/config",
   "remote_container_config": "/etc/containers/systemd/gg-proxy-subscriptions.container",
