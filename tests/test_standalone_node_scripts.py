@@ -89,17 +89,18 @@ class StandaloneNodeScriptTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def _write_fake_bin(self, root: Path) -> Path:
+    def _write_fake_bin(self, root: Path, *, include_python3: bool = True) -> Path:
         fake_bin = root / "fake-bin"
         fake_bin.mkdir(parents=True, exist_ok=True)
         log_path = root / "fake-transport.log"
         python_path = self._bash_path(Path(self._python()))
-        (fake_bin / "python3").write_text(
-            "#!/usr/bin/env bash\n"
-            "set -euo pipefail\n"
-            f"exec '{python_path}' \"$@\"\n",
-            encoding="utf-8",
-        )
+        if include_python3:
+            (fake_bin / "python3").write_text(
+                "#!/usr/bin/env bash\n"
+                "set -euo pipefail\n"
+                f"exec '{python_path}' \"$@\"\n",
+                encoding="utf-8",
+            )
         (fake_bin / "sshpass").write_text(
             "#!/usr/bin/env bash\n"
             "set -euo pipefail\n"
@@ -120,7 +121,8 @@ class StandaloneNodeScriptTests(unittest.TestCase):
             "exit 0\n",
             encoding="utf-8",
         )
-        os.chmod(fake_bin / "python3", 0o755)
+        if include_python3:
+            os.chmod(fake_bin / "python3", 0o755)
         os.chmod(fake_bin / "sshpass", 0o755)
         os.chmod(fake_bin / "ssh", 0o755)
         return log_path
@@ -240,6 +242,43 @@ class StandaloneNodeScriptTests(unittest.TestCase):
             transport_log = log_path.read_text(encoding="utf-8")
             self.assertIn("./scripts/service.sh cliproxy-plus verify", transport_log)
             self.assertIn("systemctl is-active cliproxy-plus", transport_log)
+
+    def test_check_script_uses_python_env_when_python3_is_not_usable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            self._write_private_fixture(temp_root)
+            log_path = self._write_fake_bin(temp_root, include_python3=False)
+            broken_python3 = temp_root / "fake-bin" / "python3"
+            broken_python3.write_text(
+                "#!/usr/bin/env bash\n"
+                "echo 'broken python3 should not run' >&2\n"
+                "exit 86\n",
+                encoding="utf-8",
+            )
+            os.chmod(broken_python3, 0o755)
+            env = os.environ.copy()
+            env["PATH"] = f"{temp_root / 'fake-bin'}{os.pathsep}{env['PATH']}"
+            env["FAKE_TRANSPORT_LOG"] = str(log_path)
+            env["PYTHON"] = self._python()
+            env["PROXY_OPS_PRIVATE_ROOT_OVERRIDE"] = str(temp_root)
+
+            result = subprocess.run(
+                [
+                    self._bash(),
+                    "-lc",
+                    f"export PATH='{self._bash_path(temp_root / 'fake-bin')}':$PATH; "
+                    f"'{self._bash_path(PRIVATE_SCRIPT_CHECK)}' --node vmrack1",
+                ],
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+                env=env,
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode, msg=result.stderr)
+            self.assertNotIn("broken python3 should not run", result.stderr)
 
 
 if __name__ == "__main__":

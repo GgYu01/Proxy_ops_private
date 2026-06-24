@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+standalone_node_python() {
+  printf '%s\n' "${PYTHON:-python3}"
+}
+
 standalone_node_root_dir() {
   if [[ -n "${PROXY_OPS_PRIVATE_ROOT_OVERRIDE:-}" ]]; then
     printf '%s\n' "${PROXY_OPS_PRIVATE_ROOT_OVERRIDE}"
@@ -31,7 +35,7 @@ standalone_node_inventory_field() {
   local root_dir="$1"
   local node_name="$2"
   local field_name="$3"
-  python3 - <<'PY' "${root_dir}" "${node_name}" "${field_name}"
+  "$(standalone_node_python)" - <<'PY' "${root_dir}" "${node_name}" "${field_name}"
 from pathlib import Path
 import sys
 import yaml
@@ -205,6 +209,6 @@ standalone_node_prepare_bundle() {
 
   (
     cd "${bundle_dir}"
-    python3 scripts/gen_config.py >/dev/null
+    "$(standalone_node_python)" scripts/gen_config.py >/dev/null
   )
 }
