@@ -16,7 +16,8 @@ Generated for the GG proxy subscription service.
 - Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
 - OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
-- Antigravity and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\Users\...\Simprint\simprint.exe`, not `C:\Users\...\Simprint\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
+- On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.
+- Antigravity, macOS Microsoft Edge, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\Users\...\Simprint\simprint.exe`, not `C:\Users\...\Simprint\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.
 - Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules only where process identity is the right control; OpenAI-family apps remain destination-rule based with DIRECT app fallbacks.
@@ -41,7 +42,7 @@ Generated for the GG proxy subscription service.
 
 ## Direct process protections
 
-Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Edge Beta, Cursor, WebView2, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. The final fallback is `MATCH,PROXY`, so non-mainland destinations are proxied for mainland China users.
+Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Edge Beta, Cursor, WebView2, Safari, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. The final fallback is `MATCH,PROXY`, so non-mainland destinations are proxied for mainland China users.
 
 ## windows
 
@@ -147,6 +148,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 - `/Applications/Antigravity.app/Contents/*`
 - `/Users/*/Applications/Antigravity.app/Contents/*`
+- `/Applications/Microsoft Edge.app/Contents/*`
+- `/Users/*/Applications/Microsoft Edge.app/Contents/*`
 
 ### Observed app process names, not proxied by default
 

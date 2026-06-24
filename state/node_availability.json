@@ -1,46 +1,46 @@
 {
-  "updated_at": "2026-06-24T06:15:39.335927Z",
+  "updated_at": "2026-06-24T07:03:45.794628Z",
   "nodes": {
     "lisahost": {
-      "last_probe_at": "2026-06-24T06:14:19.499153Z",
+      "last_probe_at": "2026-06-24T07:02:24.476147Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=failed (tcp 38.34.8.59:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost_kr": {
-      "last_probe_at": "2026-06-24T06:14:43.776510Z",
+      "last_probe_at": "2026-06-24T07:02:48.583426Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=failed (tcp 203.227.191.106:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "vmrack1": {
-      "last_probe_at": "2026-06-24T06:15:07.800520Z",
+      "last_probe_at": "2026-06-24T07:03:12.260395Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-06-24T06:15:07.800520Z",
+      "last_success_at": "2026-06-24T07:03:12.260395Z",
       "detail": "tcp=ok (tcp connect ok 38.65.93.39:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "vmrack2": {
-      "last_probe_at": "2026-06-24T06:15:09.700171Z",
+      "last_probe_at": "2026-06-24T07:03:13.973745Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.663097Z",
       "detail": "tcp=failed (tcp 38.65.93.94:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "dedirock": {
-      "last_probe_at": "2026-06-24T06:15:33.599092Z",
+      "last_probe_at": "2026-06-24T07:03:37.605136Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-06-24T06:15:33.599092Z",
+      "last_success_at": "2026-06-24T07:03:37.605136Z",
       "detail": "tcp=ok (tcp connect ok 67.215.238.140:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "us_sea_bgp_01": {
-      "last_probe_at": "2026-06-24T06:15:37.471013Z",
+      "last_probe_at": "2026-06-24T07:03:44.140473Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-06-24T06:15:37.471013Z",
+      "last_success_at": "2026-06-24T07:03:44.140473Z",
       "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     }
   }

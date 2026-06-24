@@ -76,6 +76,15 @@ OPENAI_PROXY_DOMAIN_SUFFIXES = [
     "cdn.openaimerge.com",
 ]
 
+PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
+    "windows": [],
+    "macos": [
+        "/Applications/Safari.app/Contents/*",
+        "/System/Applications/Safari.app/Contents/*",
+    ],
+    "linux": [],
+}
+
 DIRECT_PROCESS_NAMES_BY_PLATFORM = {
     "windows": [
         "QQ.exe",
@@ -241,6 +250,8 @@ PROXY_PROCESS_PATHS_BY_PLATFORM = {
     "macos": [
         "/Applications/Antigravity.app/Contents/*",
         "/Users/*/Applications/Antigravity.app/Contents/*",
+        "/Applications/Microsoft Edge.app/Contents/*",
+        "/Users/*/Applications/Microsoft Edge.app/Contents/*",
     ],
     "linux": [
         "/opt/Antigravity/*",
@@ -483,6 +494,12 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # over-route OpenAI-compatible relay domains.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
 """
+    pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+# These process exceptions intentionally run before OpenAI/ChatGPT domain
+# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
+# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+"""
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the
@@ -518,6 +535,13 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 """
     yaml_text = yaml_text.replace("rules:\n", cursor_domain_help, 1)
     first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,PROXY"
+    first_pre_domain_process_rule = "- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT"
+    if first_pre_domain_process_rule in yaml_text:
+        yaml_text = yaml_text.replace(
+            first_pre_domain_process_rule,
+            pre_domain_process_help + first_pre_domain_process_rule,
+            1,
+        )
     if first_openai_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
     first_wps_domain_rule = "- DOMAIN-KEYWORD,kingsoft,DIRECT"
@@ -574,6 +598,20 @@ def mihomo_proxy_node_direct_rules(repo_root: Path = REPO_ROOT) -> list[str]:
             continue
         rules.append(f"IP-CIDR,{host}/32,DIRECT,no-resolve")
         seen.add(host)
+    return rules
+
+
+def mihomo_pre_domain_direct_process_rules(platform: str) -> list[str]:
+    process_paths = mihomo_process_values(PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM, platform)
+
+    rules: list[str] = []
+    seen: set[str] = set()
+    for process_path in process_paths:
+        rule_type = "PROCESS-PATH-WILDCARD" if "*" in process_path else "PROCESS-PATH"
+        rule = f"{rule_type},{process_path},DIRECT"
+        if rule not in seen:
+            rules.append(rule)
+            seen.add(rule)
     return rules
 
 
@@ -667,6 +705,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         "rules": [
             *mihomo_cursor_domain_direct_rules(),
             *mihomo_proxy_node_direct_rules(repo_root),
+            *mihomo_pre_domain_direct_process_rules(platform),
             *mihomo_openai_domain_proxy_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),
@@ -1306,7 +1345,8 @@ Generated for the GG proxy subscription service.
 - Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
 - OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
-- Antigravity and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
+- On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.
+- Antigravity, macOS Microsoft Edge, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.
 - Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules only where process identity is the right control; OpenAI-family apps remain destination-rule based with DIRECT app fallbacks.
@@ -1322,7 +1362,7 @@ Generated for the GG proxy subscription service.
 
 ## Direct process protections
 
-Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Edge Beta, Cursor, WebView2, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. The final fallback is `MATCH,PROXY`, so non-mainland destinations are proxied for mainland China users.
+Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Edge Beta, Cursor, WebView2, Safari, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. The final fallback is `MATCH,PROXY`, so non-mainland destinations are proxied for mainland China users.
 
 {process_text}
 ## Operational notes

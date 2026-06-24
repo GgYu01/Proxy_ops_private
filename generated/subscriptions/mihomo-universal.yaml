@@ -226,6 +226,13 @@ rules:
 - IP-CIDR,38.65.93.39/32,DIRECT,no-resolve
 - IP-CIDR,38.65.93.94/32,DIRECT,no-resolve
 - IP-CIDR,67.215.238.140/32,DIRECT,no-resolve
+# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+# These process exceptions intentionally run before OpenAI/ChatGPT domain
+# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
+# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
 # === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
 # Only official OpenAI-family destination domains are forced through PROXY.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
@@ -340,6 +347,8 @@ rules:
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Antigravity\*,PROXY
 - PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/Users/*/Applications/Antigravity.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Applications/Microsoft Edge.app/Contents/*,PROXY
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Microsoft Edge.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
