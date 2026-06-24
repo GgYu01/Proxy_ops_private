@@ -9,19 +9,19 @@
   },
   "generated_files": [
     {
-      "bytes": 14461,
+      "bytes": 16015,
       "path": "generated/subscriptions/index.html",
-      "sha256": "1d54b41be9b9ccdabee60b519a1d3f7b677774c1b678fd2721ee70114d10c5c0"
+      "sha256": "0a8b4dcbcc3b00e986ceb78fba88ba90e54e1248442c0ba5ba5de1902f6d63b3"
     },
     {
-      "bytes": 9444,
+      "bytes": 9475,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "e97e82eb5716aa49764090d42c8984373575d0d2442304cc06eedd90ce363644"
+      "sha256": "ff2721d32094426a45b16259bed517994b418c41b2a854ff7246c5855b71ea04"
     },
     {
-      "bytes": 12033,
+      "bytes": 12843,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "58d53153c9f2801731fd58e8057a9a2a5e42ab63398f3c233a3bfe9713899bab"
+      "sha256": "c50787f8a0f4b65ce9ca6a16150a74e4d06344816065118d97a9baa37d8e1b2b"
     },
     {
       "bytes": 329,
@@ -34,19 +34,31 @@
       "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
     },
     {
-      "bytes": 240,
-      "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
-      "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
+      "bytes": 245,
+      "path": "generated/subscriptions/v2ray_node_dedirock.txt",
+      "sha256": "a4f72a120059b7ebb8d68bea3a377d1749241d88f1b4f0586539e800e3e485c9"
     },
     {
-      "bytes": 240,
+      "bytes": 246,
+      "path": "generated/subscriptions/v2ray_node_us_sea_bgp_01.txt",
+      "sha256": "43c20d58a615c0d99136a90669b0c158deca5ee8ac099237338f8fb8ae842157"
+    },
+    {
+      "bytes": 241,
+      "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
+      "sha256": "4d8d6bfa30ca7c42229e138d31fea4d58fb8bb62a85ddefddf660230ab7220b1"
+    },
+    {
+      "bytes": 732,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "0051ba8dd7c37ebed238a90fdf389e7909a6f36951d9bcaddf31a837e6ab2dcf"
+      "sha256": "b545afd5e9eb64714d3de108760f56df73644c4bd67698b5e25c3d1c08b494f0"
     }
   ],
   "publish_node": "us_sea_bgp_01",
   "published_nodes": [
-    "GG-Vmrack1"
+    "GG-US-SEA-BGP-01",
+    "GG-Vmrack1",
+    "GG-Dedirock"
   ],
   "remote_config_dir": "/srv/proxy-subscriptions/config",
   "remote_container_config": "/etc/containers/systemd/gg-proxy-subscriptions.container",

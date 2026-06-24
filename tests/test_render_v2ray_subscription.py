@@ -67,6 +67,8 @@ class V2RayRenderTests(unittest.TestCase):
         self.assertIn("@69.5.53.82:10003", artifact)
         self.assertIn("@38.65.93.39:10003", artifact)
         self.assertIn("@67.215.238.140:10003", artifact)
+        self.assertIn("sni=www.cloudflare.com", artifact)
+        self.assertNotIn("sni=www.microsoft.com", artifact)
         self.assertNotIn("@38.34.8.59:10003", artifact)
         self.assertNotIn("@203.227.191.106:10003", artifact)
         self.assertNotIn("@38.65.93.94:10003", artifact)

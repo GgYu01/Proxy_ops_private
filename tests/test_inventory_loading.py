@@ -54,6 +54,10 @@ class InventoryLoadingTests(unittest.TestCase):
         self.assertEqual("standalone_vps", nodes["us_sea_bgp_01"]["deployment_topology"])
         self.assertEqual("singbox", nodes["us_sea_bgp_01"]["runtime_service"])
 
+        for node_name in ("us_sea_bgp_01", "vmrack1", "dedirock"):
+            self.assertEqual("www.cloudflare.com:443", nodes[node_name]["reality_dest"])
+            self.assertEqual("www.cloudflare.com", nodes[node_name]["reality_server_names"])
+
 
 if __name__ == "__main__":
     unittest.main()

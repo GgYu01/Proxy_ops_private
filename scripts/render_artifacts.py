@@ -341,7 +341,7 @@ def enabled_node_by_name(repo_root: Path, node_name: str) -> dict:
 
 
 def first_server_name(node: dict) -> str:
-    names = node["secrets"]["REALITY_SERVER_NAMES"].split(",")
+    names = str(node.get("reality_server_names") or node["secrets"]["REALITY_SERVER_NAMES"]).split(",")
     return names[0].strip()
 
 

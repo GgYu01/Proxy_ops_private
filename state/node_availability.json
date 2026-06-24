@@ -1,47 +1,47 @@
 {
-  "updated_at": "2026-06-24T02:23:21.261341Z",
+  "updated_at": "2026-06-24T04:21:13.823030Z",
   "nodes": {
     "lisahost": {
-      "last_probe_at": "2026-06-24T02:21:11.988579Z",
+      "last_probe_at": "2026-06-24T04:20:04.687148Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=ok (tcp connect ok 38.34.8.59:10003); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost_kr": {
-      "last_probe_at": "2026-06-24T02:21:33.300337Z",
+      "last_probe_at": "2026-06-24T04:20:26.259883Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=ok (tcp connect ok 203.227.191.106:10003); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "vmrack1": {
-      "last_probe_at": "2026-06-24T02:21:54.501309Z",
+      "last_probe_at": "2026-06-24T04:20:47.462348Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-06-24T02:21:54.501309Z",
-      "detail": "tcp=failed (tcp 38.65.93.39:10003 failed: TimeoutError: timed out); proxy=ok (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy http status=401)"
+      "last_success_at": "2026-06-24T04:20:47.462348Z",
+      "detail": "tcp=ok (tcp connect ok 38.65.93.39:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "vmrack2": {
-      "last_probe_at": "2026-06-24T02:22:10.524547Z",
+      "last_probe_at": "2026-06-24T04:20:48.980462Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.663097Z",
       "detail": "tcp=ok (tcp connect ok 38.65.93.94:10003); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "dedirock": {
-      "last_probe_at": "2026-06-24T02:22:31.736265Z",
-      "last_health": "down",
-      "unavailable_since": "2026-06-24T02:22:31.736265Z",
-      "last_success_at": "2026-06-24T02:20:48.563544Z",
-      "detail": "tcp=ok (tcp connect ok 67.215.238.140:10003); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectTimeout: _ssl.c:993: The handshake operation timed out; curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
+      "last_probe_at": "2026-06-24T04:21:10.171971Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-24T04:21:10.171971Z",
+      "detail": "tcp=ok (tcp connect ok 67.215.238.140:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "us_sea_bgp_01": {
-      "last_probe_at": "2026-06-24T02:22:59.999454Z",
-      "last_health": "down",
-      "unavailable_since": "2026-06-23T16:01:30.054108Z",
-      "last_success_at": "2026-06-23T16:01:10.285989Z",
-      "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
+      "last_probe_at": "2026-06-24T04:21:12.242513Z",
+      "last_health": "healthy",
+      "unavailable_since": null,
+      "last_success_at": "2026-06-24T04:21:12.242513Z",
+      "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     }
   }
 }

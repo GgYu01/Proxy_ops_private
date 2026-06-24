@@ -6,7 +6,7 @@ Generated for the GG proxy subscription service.
 
 - Published profile: `mihomo-universal.yaml`
 - Node source: current enabled `Proxy_ops_private` inventory
-- Published VLESS Reality nodes: GG-Vmrack1
+- Published VLESS Reality nodes: GG-US-SEA-BGP-01, GG-Vmrack1, GG-Dedirock
 - Ruleset source: `DustinWin/ruleset_geodata` release asset `mihomo-ruleset`
 - TUN mode: enabled with `auto-route`, `auto-redirect`, `strict-route`, and DNS hijack for `any:53`
 

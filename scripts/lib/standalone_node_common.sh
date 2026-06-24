@@ -82,6 +82,18 @@ standalone_node_proxy_domain() {
   standalone_node_inventory_field "${root_dir}" "${node_name}" "proxy_domain"
 }
 
+standalone_node_reality_dest() {
+  local root_dir="$1"
+  local node_name="$2"
+  standalone_node_inventory_field "${root_dir}" "${node_name}" "reality_dest"
+}
+
+standalone_node_reality_server_names() {
+  local root_dir="$1"
+  local node_name="$2"
+  standalone_node_inventory_field "${root_dir}" "${node_name}" "reality_server_names"
+}
+
 standalone_node_set_env_value() {
   local env_file="$1"
   local key="$2"
@@ -199,6 +211,16 @@ standalone_node_prepare_bundle() {
   proxy_domain="$(standalone_node_proxy_domain "${root_dir}" "${node_name}")"
   if [[ -n "${proxy_domain}" ]]; then
     standalone_node_set_env_value "${bundle_dir}/config.env" "PROXY_PUBLIC_HOST" "${proxy_domain}"
+  fi
+  local reality_dest
+  reality_dest="$(standalone_node_reality_dest "${root_dir}" "${node_name}")"
+  if [[ -n "${reality_dest}" ]]; then
+    standalone_node_set_env_value "${bundle_dir}/config.env" "REALITY_DEST" "${reality_dest}"
+  fi
+  local reality_server_names
+  reality_server_names="$(standalone_node_reality_server_names "${root_dir}" "${node_name}")"
+  if [[ -n "${reality_server_names}" ]]; then
+    standalone_node_set_env_value "${bundle_dir}/config.env" "REALITY_SERVER_NAMES" "${reality_server_names}"
   fi
   cp "${public_repo_dir}/install.sh" "${bundle_dir}/install.sh"
   cp "${public_repo_dir}/config.env.example" "${bundle_dir}/config.env.example"

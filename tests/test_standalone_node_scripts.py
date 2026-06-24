@@ -53,6 +53,8 @@ class StandaloneNodeScriptTests(unittest.TestCase):
                             "ssh_port": 22,
                             "base_port": 10000,
                             "proxy_domain": "vmrack1.proxy.prod.gglohh.top",
+                            "reality_dest": "www.cloudflare.com:443",
+                            "reality_server_names": "www.cloudflare.com",
                             "subscription_alias": "GG-Vmrack1",
                             "enabled": True,
                             "include_in_subscription": True,
@@ -76,10 +78,10 @@ class StandaloneNodeScriptTests(unittest.TestCase):
                     "PROXY_PASS=Aa123456",
                     "SS_PASSWORD=secret_ss_password",
                     "VLESS_UUID=46e1f1cc-6476-4fbc-b25d-969fa643c816",
-                    "REALITY_PRIVATE_KEY=test-private",
-                    "REALITY_PUBLIC_KEY=test-public",
-                    "REALITY_SHORT_ID=e0924c6d9062f4d5",
-                    "REALITY_SERVER_NAMES=www.microsoft.com,microsoft.com",
+                            "REALITY_PRIVATE_KEY=test-private",
+                            "REALITY_PUBLIC_KEY=test-public",
+                            "REALITY_SHORT_ID=e0924c6d9062f4d5",
+                            "REALITY_SERVER_NAMES=www.microsoft.com,microsoft.com",
                     "SING_BOX_IMAGE=ghcr.io/sagernet/sing-box:v1.13.2",
                     "ENABLE_DEPRECATED_SING_BOX_FLAGS=true",
                     "MEMORY_LIMIT=256M",
@@ -161,6 +163,14 @@ class StandaloneNodeScriptTests(unittest.TestCase):
             self.assertTrue((bundle_root / "config.env").exists())
             self.assertIn(
                 "PROXY_PUBLIC_HOST=vmrack1.proxy.prod.gglohh.top",
+                (bundle_root / "config.env").read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "REALITY_DEST=www.cloudflare.com:443",
+                (bundle_root / "config.env").read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "REALITY_SERVER_NAMES=www.cloudflare.com",
                 (bundle_root / "config.env").read_text(encoding="utf-8"),
             )
             self.assertTrue((bundle_root / "singbox.json").exists())

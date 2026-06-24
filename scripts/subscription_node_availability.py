@@ -601,7 +601,7 @@ def _mihomo_proxy_for_node(node: dict[str, Any], *, probe_port_offset: int) -> d
         "tls": True,
         "udp": True,
         "flow": "xtls-rprx-vision",
-        "servername": _first_server_name(secrets),
+        "servername": _first_server_name(node),
         "client-fingerprint": "chrome",
         "reality-opts": {
             "public-key": secrets["REALITY_PUBLIC_KEY"],
@@ -622,8 +622,10 @@ def _missing_proxy_fields(node: dict[str, Any]) -> list[str]:
     return missing
 
 
-def _first_server_name(secrets: dict[str, str]) -> str:
-    return str(secrets["REALITY_SERVER_NAMES"]).split(",", 1)[0].strip()
+def _first_server_name(node: dict[str, Any]) -> str:
+    secrets = node.get("secrets") or {}
+    server_names = node.get("reality_server_names") or secrets["REALITY_SERVER_NAMES"]
+    return str(server_names).split(",", 1)[0].strip()
 
 
 def _resolve_executable(configured: str | None, candidates: list[str]) -> str | None:
