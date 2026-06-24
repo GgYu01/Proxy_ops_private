@@ -1373,14 +1373,49 @@ function Select-RequiredAsset {
 function Save-Download {
     param(
         [Parameter(Mandatory)] [string]$Url,
-        [Parameter(Mandatory)] [string]$Path
+        [Parameter(Mandatory)] [string]$Path,
+        [int]$MaxAttempts = 4
     )
 
     New-Item -ItemType Directory -Path (Split-Path -Parent $Path) -Force | Out-Null
-    Invoke-WebRequest -Uri $Url -OutFile $Path -UseBasicParsing -TimeoutSec 120
-    if (-not (Test-Path -LiteralPath $Path)) {
-        throw "Download did not create expected file: $Path"
+    $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+    $lastError = $null
+
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        Write-Host "download_attempt=$attempt url=$Url"
+        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+
+        if ($curl) {
+            & $curl.Source -fL --retry 2 --retry-delay 2 --connect-timeout 15 --max-time 300 -o $Path $Url
+            if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $Path) -and ((Get-Item -LiteralPath $Path).Length -gt 0)) {
+                return
+            }
+            $lastError = "curl.exe download failed with exit code $LASTEXITCODE"
+            Write-Warning $lastError
+            Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+        }
+
+        try {
+            Invoke-WebRequest -Uri $Url -OutFile $Path -UseBasicParsing -TimeoutSec 300
+            if (Test-Path -LiteralPath $Path) {
+                if ((Get-Item -LiteralPath $Path).Length -gt 0) {
+                    return
+                }
+            }
+            $lastError = "Invoke-WebRequest created an empty or missing file"
+            Write-Warning $lastError
+        } catch {
+            $lastError = "Invoke-WebRequest failed: $($_.Exception.Message)"
+            Write-Warning $lastError
+        }
+
+        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+        if ($attempt -lt $MaxAttempts) {
+            Start-Sleep -Seconds ([Math]::Min(12, 2 * $attempt))
+        }
     }
+
+    throw "Download failed after $MaxAttempts attempts: $Url; last_error=$lastError"
 }
 
 function Assert-FileDigest {
