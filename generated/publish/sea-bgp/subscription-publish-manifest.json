@@ -9,9 +9,14 @@
   },
   "generated_files": [
     {
-      "bytes": 16015,
+      "bytes": 18028,
       "path": "generated/subscriptions/index.html",
-      "sha256": "0a8b4dcbcc3b00e986ceb78fba88ba90e54e1248442c0ba5ba5de1902f6d63b3"
+      "sha256": "d68f7f6ea90d6fc6d7c0c2cfd5e65ad3d8b1bf3d5eddbe405bc8dddd464e411e"
+    },
+    {
+      "bytes": 13202,
+      "path": "generated/subscriptions/install-mihomo-windows.ps1",
+      "sha256": "7e80833c8aad627680b2c4d6e79ef7cd6cd98c53a9de559fd69e7f553d9e929a"
     },
     {
       "bytes": 9792,

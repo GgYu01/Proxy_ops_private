@@ -385,6 +385,35 @@
 
     <section class="surface">
       <div class="section-heading">
+        <h2>Windows 快速部署</h2>
+        <p>默认安装 mihomo core 和 MetaCubeXD Web UI，不安装 MetaCubeXD 桌面版。请用管理员 PowerShell 运行，脚本会校验 GitHub release digest、备份旧文件，并注册 SYSTEM 开机任务。</p>
+      </div>
+      <div class="primary-links">
+        <div class="link-panel">
+          <strong>复制一键安装命令</strong>
+          <code>iwr -UseB https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1 -OutFile $env:TEMP\install-mihomo-windows.ps1; powershell -ExecutionPolicy Bypass -File $env:TEMP\install-mihomo-windows.ps1</code>
+          <div class="copy-line">
+            <button type="button" data-copy="iwr -UseB https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1 -OutFile $env:TEMP\install-mihomo-windows.ps1; powershell -ExecutionPolicy Bypass -File $env:TEMP\install-mihomo-windows.ps1" aria-label="复制 Windows mihomo 一键安装命令">复制</button>
+          </div>
+        </div>
+        <div class="link-panel">
+          <strong>下载 PowerShell 脚本</strong>
+          <code>https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1</code>
+          <div class="copy-line">
+            <a class="text-link" href="https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1">打开</a>
+            <button type="button" data-copy="https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1" aria-label="复制 Windows mihomo 安装脚本 URL">复制</button>
+          </div>
+        </div>
+        <div class="link-panel">
+          <strong>Dashboard 地址</strong>
+          <code>http://127.0.0.1:9090/ui/</code>
+          <p>订阅 URL 应写入 mihomo profile；MetaCubeXD Web 面板不是订阅源配置中心，它只连接本机 controller 来切换节点和查看连接。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface">
+      <div class="section-heading">
         <h2>单节点入口</h2>
         <p>需要固定线路时，直接复制对应单节点订阅。新增 KR 节点已经纳入同一发布面。</p>
       </div>

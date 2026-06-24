@@ -22,10 +22,18 @@
   - `https://subs.sea.prod.gglohh.top/subscriptions/v2ray_nodes.txt`
 - Clash Verge Rev / mihomo universal profile
   - `https://subs.sea.prod.gglohh.top/subscriptions/mihomo-universal.yaml`
+- Windows mihomo + MetaCubeXD Web UI 一键部署脚本
+  - `https://subs.sea.prod.gglohh.top/subscriptions/install-mihomo-windows.ps1`
 - 进程路由说明
   - `https://subs.sea.prod.gglohh.top/subscriptions/mihomo-process-routing.md`
 - sing-box Remote Profile 清单
   - `https://subs.sea.prod.gglohh.top/subscriptions/singbox-client-profile.json`
+
+Windows 快速部署入口会安装 mihomo core，并把 MetaCubeXD 作为 mihomo `external-ui`
+托管的本地 Web Dashboard。安装后入口是
+`http://127.0.0.1:9090/ui/`。订阅链接配置在 mihomo profile
+`mihomo-universal.yaml` 里；MetaCubeXD Web 面板不是订阅源配置中心，它只连接本机
+controller 来切换节点和查看连接。
 
 单节点订阅 URL 示例：
 
