@@ -20,6 +20,13 @@ tun:
   auto-redirect: true
   strict-route: true
   auto-detect-interface: true
+  route-exclude-address:
+  - 69.5.53.82/32
+  - 38.34.8.59/32
+  - 203.227.191.106/32
+  - 38.65.93.39/32
+  - 38.65.93.94/32
+  - 67.215.238.140/32
   dns-hijack:
   - any:53
 dns:

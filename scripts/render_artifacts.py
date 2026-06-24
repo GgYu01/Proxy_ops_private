@@ -424,7 +424,23 @@ def mihomo_dns_config() -> dict:
     }
 
 
-def mihomo_tun_config() -> dict:
+def proxy_node_route_exclude_addresses(repo_root: Path = REPO_ROOT) -> list[str]:
+    addresses: list[str] = []
+    seen: set[str] = set()
+    for node in registry_subscription_nodes(repo_root):
+        host = node_public_host(node).strip()
+        try:
+            ipaddress.ip_address(host)
+        except ValueError as exc:
+            raise ValueError(f"proxy node TUN route exclusion requires an IP host for {node['name']}: {host}") from exc
+        if not host or host in seen:
+            continue
+        addresses.append(f"{host}/32")
+        seen.add(host)
+    return addresses
+
+
+def mihomo_tun_config(repo_root: Path = REPO_ROOT) -> dict:
     return {
         "enable": True,
         "stack": "mixed",
@@ -432,6 +448,7 @@ def mihomo_tun_config() -> dict:
         "auto-redirect": True,
         "strict-route": True,
         "auto-detect-interface": True,
+        "route-exclude-address": proxy_node_route_exclude_addresses(repo_root),
         "dns-hijack": ["any:53"],
     }
 
@@ -616,7 +633,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             "store-selected": True,
             "store-fake-ip": True,
         },
-        "tun": mihomo_tun_config(),
+        "tun": mihomo_tun_config(repo_root),
         "dns": mihomo_dns_config(),
         "proxies": [mihomo_proxy_for_node(node) for node in nodes],
         "proxy-groups": [
