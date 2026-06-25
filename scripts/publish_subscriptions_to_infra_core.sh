@@ -6,4 +6,4 @@ echo "[WARN] infra-core (112.28.134.53 / /mnt/hdo/infra-core / :27111) is retire
 echo "[WARN] Delegating to publish_subscriptions_to_sea_host.sh." >&2
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "${SCRIPT_DIR}/publish_subscriptions_to_sea_host.sh" "$@"
+exec bash "${SCRIPT_DIR}/publish_subscriptions_to_sea_host.sh" "$@"

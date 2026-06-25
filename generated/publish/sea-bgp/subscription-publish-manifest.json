@@ -4,59 +4,59 @@
     "container_name": "gg-proxy-subscriptions",
     "image": "docker.io/library/busybox:1.37",
     "path": "generated/publish/sea-bgp/gg-proxy-subscriptions.container",
-    "sha256": "fe05cb300362c2bf4213f444b687e5812179d1dab9bdad16a78f8486f2d3b361",
+    "sha256": "2c6f8b6a5de15eb649385ec56acd78dc17e2756ae3414229f322b3b03533e5bd",
     "traefik_host": "subs.sea.prod.gglohh.top"
   },
   "generated_files": [
     {
-      "bytes": 18028,
+      "bytes": 17515,
       "path": "generated/subscriptions/index.html",
-      "sha256": "d68f7f6ea90d6fc6d7c0c2cfd5e65ad3d8b1bf3d5eddbe405bc8dddd464e411e"
+      "sha256": "eee577fd03be89fe705e6c6e758289063a76d5161f6e321b50a3fd05e5057312"
     },
     {
-      "bytes": 14674,
+      "bytes": 14324,
       "path": "generated/subscriptions/install-mihomo-windows.ps1",
-      "sha256": "1f336f1a37f6d0fa5017412d507066cba463254de8fff145fb1366104126babc"
+      "sha256": "cb0c6b7842c5cd607dd9720cbede8a3c5040487c470c53d6b14cdbad55b93ab2"
     },
     {
-      "bytes": 9792,
+      "bytes": 9559,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "fd20623c757b23cc008da6a97d88c1d73b375c7c8fbbaf6c062ed12ef4ed0cd0"
+      "sha256": "06c451599dfa5de764c4cf9ada6e1b0dc747cd9f324524649dca16483922f698"
     },
     {
-      "bytes": 13640,
+      "bytes": 15209,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "59496b619b0e26cc5bf8ff8cca2dcf07fff2022d58bff6863574506ab42dc79f"
+      "sha256": "9d32be9249df10c27cda97bb565915eac32ce66f3744622fbf345764e3ca165a"
     },
     {
-      "bytes": 329,
+      "bytes": 323,
       "path": "generated/subscriptions/singbox-client-profile.json",
-      "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
+      "sha256": "9f6033e3f37eaba73caa4c225a42871765943d056be545a062e220b0e62d491f"
     },
     {
-      "bytes": 329,
+      "bytes": 323,
       "path": "generated/subscriptions/singbox_remote_profile.json",
-      "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
+      "sha256": "9f6033e3f37eaba73caa4c225a42871765943d056be545a062e220b0e62d491f"
+    },
+    {
+      "bytes": 244,
+      "path": "generated/subscriptions/v2ray_node_dedirock.txt",
+      "sha256": "20bd9a72446f78dc598d3b7ae47aca4c52d9e32a8570d8c6e8fcb6af15bb3a00"
     },
     {
       "bytes": 245,
-      "path": "generated/subscriptions/v2ray_node_dedirock.txt",
-      "sha256": "a4f72a120059b7ebb8d68bea3a377d1749241d88f1b4f0586539e800e3e485c9"
-    },
-    {
-      "bytes": 246,
       "path": "generated/subscriptions/v2ray_node_us_sea_bgp_01.txt",
-      "sha256": "43c20d58a615c0d99136a90669b0c158deca5ee8ac099237338f8fb8ae842157"
+      "sha256": "ab116c2685d59ea36e91db41a89afaee3b9ed6a4157837db385dd2898f62a8a7"
     },
     {
-      "bytes": 241,
+      "bytes": 240,
       "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
-      "sha256": "4d8d6bfa30ca7c42229e138d31fea4d58fb8bb62a85ddefddf660230ab7220b1"
+      "sha256": "eb1b29bdd018abf283920ccd54405fa5c35b9a0739cb257abfc79557375f4849"
     },
     {
-      "bytes": 732,
+      "bytes": 729,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "b545afd5e9eb64714d3de108760f56df73644c4bd67698b5e25c3d1c08b494f0"
+      "sha256": "1c4a53fae61532697434339ed237680865e194a611749103ae62a883d5a15bb3"
     }
   ],
   "publish_node": "us_sea_bgp_01",

@@ -103,6 +103,8 @@ PUBLIC_LANDING_URL="${PUBLIC_LANDING_URL:-${PUBLIC_BASE_URL%/subscriptions}/}"
 PUBLIC_MIHOMO_URL="${PUBLIC_MIHOMO_URL:-${PUBLIC_BASE_URL%/}/mihomo-universal.yaml}"
 SSH_BIN="${SSH_BIN:-ssh}"
 SSHPASS_BIN="${SSHPASS_BIN:-sshpass}"
+CURL_BIN="${CURL_BIN:-curl}"
+SSH_IDENTITY_FILE="${SSH_IDENTITY_FILE:-}"
 SUBSCRIPTION_CONTAINER_NAME="${SUBSCRIPTION_CONTAINER_NAME:-gg-proxy-subscriptions}"
 SUBSCRIPTION_CONTAINER_CONFIG_FILE="${SUBSCRIPTION_CONTAINER_CONFIG_FILE:-${PUBLISH_CONFIG_DIR}/${SUBSCRIPTION_CONTAINER_NAME}.container}"
 SUBSCRIPTION_PUBLISH_MANIFEST="${SUBSCRIPTION_PUBLISH_MANIFEST:-${PUBLISH_CONFIG_DIR}/subscription-publish-manifest.json}"
@@ -153,6 +155,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 SKIP_LOCAL_AVAILABILITY_PROBE="${SEA_SUBSCRIPTION_SKIP_LOCAL_PROBE:-0}"
+USE_PREVALIDATED_ARTIFACTS="${SEA_SUBSCRIPTION_USE_PREVALIDATED_ARTIFACTS:-0}"
 
 if [[ ! -d "${SUBSCRIPTIONS_DIR}" ]]; then
   echo "[ERROR] Missing generated subscriptions directory: ${SUBSCRIPTIONS_DIR}"
@@ -178,15 +181,31 @@ run_ssh() {
       echo "[ERROR] REMOTE_PASSWORD was provided but sshpass is not installed: ${SSHPASS_BIN}" >&2
       exit 10
     }
-    SSHPASS="${REMOTE_PASSWORD}" "${SSHPASS_BIN}" -e "${SSH_BIN}" \
-      -o StrictHostKeyChecking=no \
-      -o PreferredAuthentications=password \
-      -o PubkeyAuthentication=no \
-      -p "${REMOTE_PORT}" \
-      "${SSH_TARGET}" \
-      "$@"
+    if [[ -n "${SSH_IDENTITY_FILE}" ]]; then
+      SSHPASS="${REMOTE_PASSWORD}" "${SSHPASS_BIN}" -e "${SSH_BIN}" \
+        -o StrictHostKeyChecking=no \
+        -o PreferredAuthentications=password \
+        -o PubkeyAuthentication=no \
+        -i "${SSH_IDENTITY_FILE}" \
+        -o IdentitiesOnly=yes \
+        -p "${REMOTE_PORT}" \
+        "${SSH_TARGET}" \
+        "$@"
+    else
+      SSHPASS="${REMOTE_PASSWORD}" "${SSHPASS_BIN}" -e "${SSH_BIN}" \
+        -o StrictHostKeyChecking=no \
+        -o PreferredAuthentications=password \
+        -o PubkeyAuthentication=no \
+        -p "${REMOTE_PORT}" \
+        "${SSH_TARGET}" \
+        "$@"
+    fi
   else
-    "${SSH_BIN}" -p "${REMOTE_PORT}" "${SSH_TARGET}" "$@"
+    if [[ -n "${SSH_IDENTITY_FILE}" ]]; then
+      "${SSH_BIN}" -i "${SSH_IDENTITY_FILE}" -o IdentitiesOnly=yes -p "${REMOTE_PORT}" "${SSH_TARGET}" "$@"
+    else
+      "${SSH_BIN}" -p "${REMOTE_PORT}" "${SSH_TARGET}" "$@"
+    fi
   fi
 }
 
@@ -221,7 +240,9 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
   exit 0
 fi
 
-if [[ "${SKIP_LOCAL_AVAILABILITY_PROBE}" == "1" ]]; then
+if [[ "${USE_PREVALIDATED_ARTIFACTS}" == "1" ]]; then
+  echo "[INFO] Using prevalidated subscription artifacts without local probe or regeneration"
+elif [[ "${SKIP_LOCAL_AVAILABILITY_PROBE}" == "1" ]]; then
   echo "[INFO] Regenerating subscription artifacts from existing availability ledger"
   SKIP_AVAILABILITY_PROBE=1 "${PYTHON}" "${ROOT_DIR}/scripts/reconcile_subscription_node_availability.py" --report
   SKIP_AVAILABILITY_PROBE=1 "${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
@@ -260,13 +281,35 @@ cleanup_verify_file() {
   rm -f "${MIHOMO_VERIFY_FILE}"
 }
 trap cleanup_verify_file EXIT
+required_published_rules=(
+  "DOMAIN-KEYWORD,taobao,DIRECT"
+  "DOMAIN-KEYWORD,goofish,DIRECT"
+  "DOMAIN-KEYWORD,alipay,DIRECT"
+  "DOMAIN-KEYWORD,doubao,DIRECT"
+  "DOMAIN-KEYWORD,douyin,DIRECT"
+  "DOMAIN-KEYWORD,qwen,DIRECT"
+  "DOMAIN-KEYWORD,dashscope,DIRECT"
+  "DOMAIN-KEYWORD,xiaomi,DIRECT"
+  "DOMAIN-KEYWORD,mimo,DIRECT"
+  "DOMAIN-SUFFIX,mi.com,DIRECT"
+  "DOMAIN-SUFFIX,xiaomi.com,DIRECT"
+  "DOMAIN-SUFFIX,openai.com,PROXY"
+)
 for attempt in $(seq 1 10); do
-  if curl -fsS --max-time 15 "${PUBLIC_TEST_URL}" >/dev/null && \
-     curl -fsS --max-time 15 "${PUBLIC_MIHOMO_URL}" -o "${MIHOMO_VERIFY_FILE}" && \
-     grep -Eq 'PROCESS-NAME,wps\.exe|DOMAIN-SUFFIX,wps\.cn' "${MIHOMO_VERIFY_FILE}"; then
-    echo "[INFO] Subscription endpoint is ready on attempt ${attempt}."
-    echo "[INFO] Subscription publish completed successfully."
-    exit 0
+  if "${CURL_BIN}" -fsS --max-time 15 "${PUBLIC_TEST_URL}" >/dev/null && \
+     "${CURL_BIN}" -fsS --max-time 15 "${PUBLIC_MIHOMO_URL}" -o "${MIHOMO_VERIFY_FILE}"; then
+    missing_required_rule=0
+    for required_rule in "${required_published_rules[@]}"; do
+      if ! grep -Fq "${required_rule}" "${MIHOMO_VERIFY_FILE}"; then
+        missing_required_rule=1
+        break
+      fi
+    done
+    if [[ "${missing_required_rule}" -eq 0 ]]; then
+      echo "[INFO] Subscription endpoint is ready on attempt ${attempt}."
+      echo "[INFO] Subscription publish completed successfully."
+      exit 0
+    fi
   fi
   sleep 2
 done

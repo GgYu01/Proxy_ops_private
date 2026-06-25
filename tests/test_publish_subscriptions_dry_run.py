@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,12 +23,7 @@ class PublishSubscriptionsDryRunTests(unittest.TestCase):
         return str(bash)
 
     def _python(self) -> str:
-        venv_python = REPO_ROOT.parent.parent / ".venv" / "Scripts" / "python.exe"
-        if venv_python.exists():
-            return str(venv_python)
-        python = shutil.which("python") or shutil.which("python3")
-        self.assertIsNotNone(python, "python is required for publish script dry-run test")
-        return str(python)
+        return sys.executable
 
     def _env(self, **overrides: str) -> dict[str, str]:
         return {**os.environ, "PYTHON": self._python(), **overrides}
@@ -37,6 +33,43 @@ class PublishSubscriptionsDryRunTests(unittest.TestCase):
         if len(raw) >= 3 and raw[1:3] == ":/":
             return f"/{raw[0].lower()}{raw[2:]}"
         return raw
+
+    def _write_successful_curl_wrapper(self, path: Path, log_file: Path) -> None:
+        path.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f"printf 'curl %s\\n' \"$*\" >> '{log_file.as_posix()}'",
+                    "out=''",
+                    "while [ $# -gt 0 ]; do",
+                    "  case \"$1\" in",
+                    "    -o) shift; out=\"$1\" ;;",
+                    "  esac",
+                    "  shift || true",
+                    "done",
+                    "if [ -n \"$out\" ]; then",
+                    "  cat > \"$out\" <<'EOF'",
+                    "DOMAIN-SUFFIX,wps.cn,DIRECT",
+                    "DOMAIN-KEYWORD,taobao,DIRECT",
+                    "DOMAIN-KEYWORD,goofish,DIRECT",
+                    "DOMAIN-KEYWORD,alipay,DIRECT",
+                    "DOMAIN-KEYWORD,doubao,DIRECT",
+                    "DOMAIN-KEYWORD,douyin,DIRECT",
+                    "DOMAIN-KEYWORD,qwen,DIRECT",
+                    "DOMAIN-KEYWORD,dashscope,DIRECT",
+                    "DOMAIN-KEYWORD,xiaomi,DIRECT",
+                    "DOMAIN-KEYWORD,mimo,DIRECT",
+                    "DOMAIN-SUFFIX,mi.com,DIRECT",
+                    "DOMAIN-SUFFIX,xiaomi.com,DIRECT",
+                    "DOMAIN-SUFFIX,openai.com,PROXY",
+                    "EOF",
+                    "fi",
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
 
     def test_dry_run_prints_public_base_url_and_target(self) -> None:
         env = self._env(
@@ -182,13 +215,14 @@ class PublishSubscriptionsDryRunTests(unittest.TestCase):
                 encoding="utf-8",
             )
             curl_wrapper = bin_dir / "curl"
-            curl_wrapper.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            self._write_successful_curl_wrapper(curl_wrapper, log_file)
             for wrapper in (python_wrapper, ssh_wrapper, curl_wrapper):
                 wrapper.chmod(0o755)
 
             env = self._env(
                 PYTHON=str(python_wrapper),
                 SSH_BIN=str(ssh_wrapper),
+                CURL_BIN=str(curl_wrapper),
                 REMOTE_HOST="root@example.invalid",
                 REMOTE_PORT="42778",
             )
@@ -257,13 +291,14 @@ class PublishSubscriptionsDryRunTests(unittest.TestCase):
                 encoding="utf-8",
             )
             curl_wrapper = bin_dir / "curl"
-            curl_wrapper.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            self._write_successful_curl_wrapper(curl_wrapper, log_file)
             for wrapper in (python_wrapper, ssh_wrapper, curl_wrapper):
                 wrapper.chmod(0o755)
 
             env = self._env(
                 PYTHON=str(python_wrapper),
                 SSH_BIN=str(ssh_wrapper),
+                CURL_BIN=str(curl_wrapper),
                 REMOTE_HOST="root@example.invalid",
                 REMOTE_PORT="42778",
                 SEA_SUBSCRIPTION_SKIP_LOCAL_PROBE="1",
@@ -284,6 +319,128 @@ class PublishSubscriptionsDryRunTests(unittest.TestCase):
             self.assertIn("reconcile_subscription_node_availability.py --report", log_text)
             self.assertNotIn("--probe", log_text)
             self.assertIn("render_artifacts.py", log_text)
+
+    def test_publish_can_use_prevalidated_artifacts_without_regenerating(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp)
+            bin_dir = workdir / "bin"
+            bin_dir.mkdir()
+            log_file = workdir / "commands.log"
+
+            python_wrapper = bin_dir / "python"
+            python_wrapper.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        f"printf '%s\\n' \"$*\" >> '{log_file.as_posix()}'",
+                        f"exec '{self._python()}' \"$@\"",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            ssh_wrapper = bin_dir / "ssh"
+            ssh_wrapper.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        f"printf 'ssh %s\\n' \"$*\" >> '{log_file.as_posix()}'",
+                        "case \"$*\" in",
+                        "  *mkdir*) exit 0 ;;",
+                        "  *tar*xzf*) mkdir -p /tmp/publish-fixture-stage && tar xzf - -C /tmp/publish-fixture-stage; exit 0 ;;",
+                        "  *mv*) exit 0 ;;",
+                        "  *systemctl*) exit 0 ;;",
+                        "esac",
+                        "exit 0",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            curl_wrapper = bin_dir / "curl"
+            self._write_successful_curl_wrapper(curl_wrapper, log_file)
+            for wrapper in (python_wrapper, ssh_wrapper, curl_wrapper):
+                wrapper.chmod(0o755)
+
+            env = self._env(
+                PYTHON=str(python_wrapper),
+                SSH_BIN=str(ssh_wrapper),
+                CURL_BIN=str(curl_wrapper),
+                REMOTE_HOST="root@example.invalid",
+                REMOTE_PORT="42778",
+                SEA_SUBSCRIPTION_USE_PREVALIDATED_ARTIFACTS="1",
+            )
+            result = subprocess.run(
+                [self._bash(), str(REPO_ROOT / "scripts" / "publish_subscriptions_to_sea_host.sh")],
+                cwd=REPO_ROOT,
+                env=env,
+                text=True,
+                encoding="utf-8",
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
+            self.assertIn("prevalidated subscription artifacts", result.stdout)
+            log_text = log_file.read_text(encoding="utf-8")
+            self.assertNotIn("reconcile_subscription_node_availability.py", log_text)
+            self.assertNotIn("render_artifacts.py", log_text)
+            self.assertIn("curl ", log_text)
+
+    def test_publish_can_use_explicit_ssh_identity_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp)
+            bin_dir = workdir / "bin"
+            bin_dir.mkdir()
+            log_file = workdir / "commands.log"
+            identity_file = workdir / "sea-host-key"
+            identity_file.write_text("fixture-key\n", encoding="utf-8")
+
+            ssh_wrapper = bin_dir / "ssh"
+            ssh_wrapper.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        f"printf 'ssh %s\\n' \"$*\" >> '{log_file.as_posix()}'",
+                        "case \"$*\" in",
+                        "  *mkdir*) exit 0 ;;",
+                        "  *tar*xzf*) mkdir -p /tmp/publish-fixture-stage && tar xzf - -C /tmp/publish-fixture-stage; exit 0 ;;",
+                        "  *mv*) exit 0 ;;",
+                        "  *systemctl*) exit 0 ;;",
+                        "esac",
+                        "exit 0",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            curl_wrapper = bin_dir / "curl"
+            self._write_successful_curl_wrapper(curl_wrapper, log_file)
+            for wrapper in (ssh_wrapper, curl_wrapper):
+                wrapper.chmod(0o755)
+
+            env = self._env(
+                SSH_BIN=str(ssh_wrapper),
+                SSH_IDENTITY_FILE=str(identity_file),
+                CURL_BIN=str(curl_wrapper),
+                REMOTE_HOST="root@example.invalid",
+                REMOTE_PORT="42778",
+                SEA_SUBSCRIPTION_USE_PREVALIDATED_ARTIFACTS="1",
+            )
+            result = subprocess.run(
+                [self._bash(), str(REPO_ROOT / "scripts" / "publish_subscriptions_to_sea_host.sh")],
+                cwd=REPO_ROOT,
+                env=env,
+                text=True,
+                encoding="utf-8",
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
+            log_text = log_file.read_text(encoding="utf-8")
+            self.assertIn(f"-i {identity_file}", log_text)
+            self.assertIn("-o IdentitiesOnly=yes", log_text)
 
 
 if __name__ == "__main__":

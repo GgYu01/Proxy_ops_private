@@ -65,6 +65,62 @@ WPS_DIRECT_DOMAIN_KEYWORDS = [
     "kingsoft",
 ]
 
+CHINA_APP_COMPANY_DIRECT_DOMAIN_KEYWORDS = [
+    "alibaba",
+    "alicdn",
+    "aliyun",
+    "aliyuncs",
+    "alipay",
+    "alipayobjects",
+    "antgroup",
+    "taobao",
+    "tmall",
+    "xianyu",
+    "goofish",
+    "1688",
+    "alimama",
+    "aliexpress",
+    "qwen",
+    "qianwen",
+    "tongyi",
+    "dashscope",
+    "bytedance",
+    "bytecdn",
+    "byteimg",
+    "doubao",
+    "douyin",
+    "toutiao",
+    "snssdk",
+    "volcengine",
+    "volces",
+    "zijieapi",
+    "pstatp",
+    "amemv",
+    "iesdouyin",
+    "oceanengine",
+    "feishu",
+    "larksuite",
+    "tiktok",
+    "capcut",
+    "jianying",
+    "xiaomi",
+    "miui",
+    "mijia",
+    "duokan",
+    "mipay",
+    "mi-img",
+    "mimo",
+]
+
+CHINA_APP_COMPANY_DIRECT_DOMAIN_SUFFIXES = [
+    "mi.com",
+    "xiaomi.com",
+    "miui.com",
+    "mijia.tech",
+    "duokan.com",
+    "mipay.com",
+]
+
 OPENAI_PROXY_DOMAIN_SUFFIXES = [
     "openai.com",
     "chatgpt.com",
@@ -542,6 +598,15 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
             pre_domain_process_help + first_pre_domain_process_rule,
             1,
         )
+    first_china_company_rule = "- DOMAIN-KEYWORD,alibaba,DIRECT"
+    china_company_help = """# === CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
+# Alibaba/Ant, ByteDance/Doubao/Douyin, and Xiaomi/MiMo domains are matched
+# with explicit suffixes plus broad company/product keywords before proxy
+# destination and process override rules. The broad matching is intentional.
+# === END CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
+"""
+    if first_china_company_rule in yaml_text:
+        yaml_text = yaml_text.replace(first_china_company_rule, china_company_help + first_china_company_rule, 1)
     if first_openai_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
     first_wps_domain_rule = "- DOMAIN-KEYWORD,kingsoft,DIRECT"
@@ -578,6 +643,13 @@ def mihomo_wps_domain_direct_rules() -> list[str]:
     return [
         *[f"DOMAIN-KEYWORD,{keyword},DIRECT" for keyword in WPS_DIRECT_DOMAIN_KEYWORDS],
         *[f"DOMAIN-SUFFIX,{domain},DIRECT" for domain in WPS_DIRECT_DOMAIN_SUFFIXES],
+    ]
+
+
+def mihomo_china_app_company_domain_direct_rules() -> list[str]:
+    return [
+        *[f"DOMAIN-KEYWORD,{keyword},DIRECT" for keyword in CHINA_APP_COMPANY_DIRECT_DOMAIN_KEYWORDS],
+        *[f"DOMAIN-SUFFIX,{domain},DIRECT" for domain in CHINA_APP_COMPANY_DIRECT_DOMAIN_SUFFIXES],
     ]
 
 
@@ -706,6 +778,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_cursor_domain_direct_rules(),
             *mihomo_proxy_node_direct_rules(repo_root),
             *mihomo_pre_domain_direct_process_rules(platform),
+            *mihomo_china_app_company_domain_direct_rules(),
             *mihomo_openai_domain_proxy_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),

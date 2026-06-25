@@ -233,6 +233,61 @@ rules:
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 - PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
+# === CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
+# Alibaba/Ant, ByteDance/Doubao/Douyin, and Xiaomi/MiMo domains are matched
+# with explicit suffixes plus broad company/product keywords before proxy
+# destination and process override rules. The broad matching is intentional.
+# === END CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
+- DOMAIN-KEYWORD,alibaba,DIRECT
+- DOMAIN-KEYWORD,alicdn,DIRECT
+- DOMAIN-KEYWORD,aliyun,DIRECT
+- DOMAIN-KEYWORD,aliyuncs,DIRECT
+- DOMAIN-KEYWORD,alipay,DIRECT
+- DOMAIN-KEYWORD,alipayobjects,DIRECT
+- DOMAIN-KEYWORD,antgroup,DIRECT
+- DOMAIN-KEYWORD,taobao,DIRECT
+- DOMAIN-KEYWORD,tmall,DIRECT
+- DOMAIN-KEYWORD,xianyu,DIRECT
+- DOMAIN-KEYWORD,goofish,DIRECT
+- DOMAIN-KEYWORD,1688,DIRECT
+- DOMAIN-KEYWORD,alimama,DIRECT
+- DOMAIN-KEYWORD,aliexpress,DIRECT
+- DOMAIN-KEYWORD,qwen,DIRECT
+- DOMAIN-KEYWORD,qianwen,DIRECT
+- DOMAIN-KEYWORD,tongyi,DIRECT
+- DOMAIN-KEYWORD,dashscope,DIRECT
+- DOMAIN-KEYWORD,bytedance,DIRECT
+- DOMAIN-KEYWORD,bytecdn,DIRECT
+- DOMAIN-KEYWORD,byteimg,DIRECT
+- DOMAIN-KEYWORD,doubao,DIRECT
+- DOMAIN-KEYWORD,douyin,DIRECT
+- DOMAIN-KEYWORD,toutiao,DIRECT
+- DOMAIN-KEYWORD,snssdk,DIRECT
+- DOMAIN-KEYWORD,volcengine,DIRECT
+- DOMAIN-KEYWORD,volces,DIRECT
+- DOMAIN-KEYWORD,zijieapi,DIRECT
+- DOMAIN-KEYWORD,pstatp,DIRECT
+- DOMAIN-KEYWORD,amemv,DIRECT
+- DOMAIN-KEYWORD,iesdouyin,DIRECT
+- DOMAIN-KEYWORD,oceanengine,DIRECT
+- DOMAIN-KEYWORD,feishu,DIRECT
+- DOMAIN-KEYWORD,larksuite,DIRECT
+- DOMAIN-KEYWORD,tiktok,DIRECT
+- DOMAIN-KEYWORD,capcut,DIRECT
+- DOMAIN-KEYWORD,jianying,DIRECT
+- DOMAIN-KEYWORD,xiaomi,DIRECT
+- DOMAIN-KEYWORD,miui,DIRECT
+- DOMAIN-KEYWORD,mijia,DIRECT
+- DOMAIN-KEYWORD,duokan,DIRECT
+- DOMAIN-KEYWORD,mipay,DIRECT
+- DOMAIN-KEYWORD,mi-img,DIRECT
+- DOMAIN-KEYWORD,mimo,DIRECT
+- DOMAIN-SUFFIX,mi.com,DIRECT
+- DOMAIN-SUFFIX,xiaomi.com,DIRECT
+- DOMAIN-SUFFIX,miui.com,DIRECT
+- DOMAIN-SUFFIX,mijia.tech,DIRECT
+- DOMAIN-SUFFIX,duokan.com,DIRECT
+- DOMAIN-SUFFIX,mipay.com,DIRECT
 # === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
 # Only official OpenAI-family destination domains are forced through PROXY.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
