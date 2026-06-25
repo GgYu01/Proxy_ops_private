@@ -132,11 +132,32 @@ OPENAI_PROXY_DOMAIN_SUFFIXES = [
     "cdn.openaimerge.com",
 ]
 
+PRE_DOMAIN_DIRECT_PROCESS_NAMES_BY_PLATFORM = {
+    "windows": [],
+    "macos": [
+        "Safari",
+        "SafariLinkExtension",
+        "SafariWidgetExtension",
+        "SafariBookmarksSyncAgent",
+        "com.apple.Safari.SafeBrowsing.Service",
+        "com.apple.SafariPlatformSupport.Helper",
+        "com.apple.WebKit.Networking",
+    ],
+    "linux": [],
+}
+
 PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [],
     "macos": [
         "/Applications/Safari.app/Contents/*",
         "/System/Applications/Safari.app/Contents/*",
+        "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/*",
+        "/System/Cryptexes/App/System/Applications/Safari.app/Contents/*",
+        "/System/Library/PrivateFrameworks/SafariSafeBrowsing.framework/*",
+        "/System/Library/PrivateFrameworks/SafariPlatformSupport.framework/*",
+        "/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking",
+        "/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking",
+        "/System/Cryptexes/App/usr/libexec/SafariBookmarksSyncAgent",
     ],
     "linux": [],
 }
@@ -552,8 +573,9 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 """
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 # These process exceptions intentionally run before OpenAI/ChatGPT domain
-# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
-# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# proxy rules. Safari, Safari-owned helpers, and macOS WebKit networking are
+# kept DIRECT even when they open official OpenAI-family destinations; use
+# Microsoft Edge for browser-wide PROXY behavior on macOS.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
@@ -591,7 +613,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 """
     yaml_text = yaml_text.replace("rules:\n", cursor_domain_help, 1)
     first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,PROXY"
-    first_pre_domain_process_rule = "- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT"
+    first_pre_domain_process_rule = "- PROCESS-NAME,Safari,DIRECT"
     if first_pre_domain_process_rule in yaml_text:
         yaml_text = yaml_text.replace(
             first_pre_domain_process_rule,
@@ -674,10 +696,16 @@ def mihomo_proxy_node_direct_rules(repo_root: Path = REPO_ROOT) -> list[str]:
 
 
 def mihomo_pre_domain_direct_process_rules(platform: str) -> list[str]:
+    process_names = mihomo_process_values(PRE_DOMAIN_DIRECT_PROCESS_NAMES_BY_PLATFORM, platform)
     process_paths = mihomo_process_values(PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM, platform)
 
     rules: list[str] = []
     seen: set[str] = set()
+    for process_name in process_names:
+        rule = f"PROCESS-NAME,{process_name},DIRECT"
+        if rule not in seen:
+            rules.append(rule)
+            seen.add(rule)
     for process_path in process_paths:
         rule_type = "PROCESS-PATH-WILDCARD" if "*" in process_path else "PROCESS-PATH"
         rule = f"{rule_type},{process_path},DIRECT"
@@ -1763,6 +1791,12 @@ def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
     aliases = ", ".join(str(node["subscription_alias"]) for node in nodes)
     process_sections = []
     for platform in ("windows", "macos", "linux"):
+        pre_domain_direct_names = "\n".join(f"- `{name}`" for name in PRE_DOMAIN_DIRECT_PROCESS_NAMES_BY_PLATFORM[platform])
+        pre_domain_direct_paths = "\n".join(f"- `{path}`" for path in PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM[platform])
+        if not pre_domain_direct_names:
+            pre_domain_direct_names = "- none by default"
+        if not pre_domain_direct_paths:
+            pre_domain_direct_paths = "- none by default"
         direct_names = "\n".join(f"- `{name}`" for name in DIRECT_PROCESS_NAMES_BY_PLATFORM[platform])
         direct_paths = "\n".join(f"- `{path}`" for path in DIRECT_PROCESS_PATHS_BY_PLATFORM[platform])
         proxy_paths = "\n".join(f"- `{path}`" for path in PROXY_PROCESS_PATHS_BY_PLATFORM[platform])
@@ -1772,6 +1806,14 @@ def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
         observed_paths = "\n".join(f"- `{path}`" for path in PROCESS_PATHS_BY_PLATFORM[platform])
         process_sections.append(
             f"""## {platform}
+
+### High-priority DIRECT process names before destination proxy rules
+
+{pre_domain_direct_names}
+
+### High-priority DIRECT process paths before destination proxy rules
+
+{pre_domain_direct_paths}
 
 ### DIRECT process names
 
@@ -1813,7 +1855,7 @@ Generated for the GG proxy subscription service.
 - Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
 - OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
-- On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.
+- On macOS, Safari, Safari-owned helpers, and WebKit networking process names/paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. This intentionally also covers other apps using the same system WebKit networking process; use Microsoft Edge when browser-wide `PROXY` behavior is required.
 - Antigravity, macOS Microsoft Edge, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.

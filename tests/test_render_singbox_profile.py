@@ -248,6 +248,55 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertLess(max(china_direct_indices), rules.index("RULE-SET,proxy,PROXY"))
         self.assertLess(max(china_direct_indices), rules.index("MATCH,PROXY"))
 
+    def test_mihomo_routes_safari_process_family_direct_before_destination_proxy_rules(self) -> None:
+        render_artifacts = load_module()
+        expected_safari_rules = [
+            "PROCESS-NAME,Safari,DIRECT",
+            "PROCESS-NAME,SafariLinkExtension,DIRECT",
+            "PROCESS-NAME,SafariWidgetExtension,DIRECT",
+            "PROCESS-NAME,SafariBookmarksSyncAgent,DIRECT",
+            "PROCESS-NAME,com.apple.Safari.SafeBrowsing.Service,DIRECT",
+            "PROCESS-NAME,com.apple.SafariPlatformSupport.Helper,DIRECT",
+            "PROCESS-NAME,com.apple.WebKit.Networking,DIRECT",
+            "PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT",
+            "PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT",
+            "PROCESS-PATH-WILDCARD,/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/*,DIRECT",
+            "PROCESS-PATH-WILDCARD,/System/Cryptexes/App/System/Applications/Safari.app/Contents/*,DIRECT",
+            "PROCESS-PATH-WILDCARD,/System/Library/PrivateFrameworks/SafariSafeBrowsing.framework/*,DIRECT",
+            "PROCESS-PATH-WILDCARD,/System/Library/PrivateFrameworks/SafariPlatformSupport.framework/*,DIRECT",
+            "PROCESS-PATH,/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking,DIRECT",
+            "PROCESS-PATH,/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking,DIRECT",
+            "PROCESS-PATH,/System/Cryptexes/App/usr/libexec/SafariBookmarksSyncAgent,DIRECT",
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            mihomo = render_artifacts.render_mihomo_config(repo_root, platform="universal")
+
+        rules = yaml.safe_load(mihomo)["rules"]
+        for rule in expected_safari_rules:
+            self.assertIn(rule, rules)
+
+        self.assertNotIn("PROCESS-NAME,networkserviceproxy,DIRECT", rules)
+
+        safari_direct_indices = [rules.index(rule) for rule in expected_safari_rules]
+        safari_block_end = max(safari_direct_indices)
+        self.assertLess(safari_block_end, rules.index("DOMAIN-SUFFIX,openai.com,PROXY"))
+        self.assertLess(
+            safari_block_end,
+            rules.index("PROCESS-PATH-WILDCARD,/Applications/Microsoft Edge.app/Contents/*,PROXY"),
+        )
+        self.assertLess(
+            safari_block_end,
+            rules.index("PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY"),
+        )
+        self.assertLess(safari_block_end, rules.index("RULE-SET,proxy,PROXY"))
+        self.assertLess(safari_block_end, rules.index("RULE-SET,gfw,PROXY"))
+        self.assertLess(safari_block_end, rules.index("RULE-SET,tld-proxy,PROXY"))
+        self.assertLess(safari_block_end, rules.index("MATCH,PROXY"))
+
+        self.assertIn("PROCESS-PATH-WILDCARD,/Users/*/Applications/Microsoft Edge.app/Contents/*,PROXY", rules)
+
     def test_existing_profile_mihomo_renderer_preserves_proxy_material(self) -> None:
         render_mihomo = load_existing_mihomo_module()
 

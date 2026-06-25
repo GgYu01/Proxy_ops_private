@@ -228,11 +228,35 @@ rules:
 - IP-CIDR,67.215.238.140/32,DIRECT,no-resolve
 # === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 # These process exceptions intentionally run before OpenAI/ChatGPT domain
-# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
-# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# proxy rules. Safari, Safari-owned helpers, and macOS WebKit networking are
+# kept DIRECT even when they open official OpenAI-family destinations; use
+# Microsoft Edge for browser-wide PROXY behavior on macOS.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+# === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
+# This editable block contains DIRECT process protections.
+# This profile is for users in mainland China: private, China, Apple China,
+# Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
+# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
+# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
+# PROXY.
+# To stop protecting one DIRECT process, comment out its line. Keep these
+# process rules explicit and predictable.
+- PROCESS-NAME,Safari,DIRECT
+- PROCESS-NAME,SafariLinkExtension,DIRECT
+- PROCESS-NAME,SafariWidgetExtension,DIRECT
+- PROCESS-NAME,SafariBookmarksSyncAgent,DIRECT
+- PROCESS-NAME,com.apple.Safari.SafeBrowsing.Service,DIRECT
+- PROCESS-NAME,com.apple.SafariPlatformSupport.Helper,DIRECT
+- PROCESS-NAME,com.apple.WebKit.Networking,DIRECT
 - PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/System/Cryptexes/App/System/Applications/Safari.app/Contents/*,DIRECT
+- PROCESS-PATH-WILDCARD,/System/Library/PrivateFrameworks/SafariSafeBrowsing.framework/*,DIRECT
+- PROCESS-PATH-WILDCARD,/System/Library/PrivateFrameworks/SafariPlatformSupport.framework/*,DIRECT
+- PROCESS-PATH,/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking,DIRECT
+- PROCESS-PATH,/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking,DIRECT
+- PROCESS-PATH,/System/Cryptexes/App/usr/libexec/SafariBookmarksSyncAgent,DIRECT
 # === CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
 # Alibaba/Ant, ByteDance/Doubao/Douyin, and Xiaomi/MiMo domains are matched
 # with explicit suffixes plus broad company/product keywords before proxy
@@ -317,15 +341,6 @@ rules:
 - DOMAIN-SUFFIX,ksosoft.com,DIRECT
 - DOMAIN-SUFFIX,ksord.com,DIRECT
 - DOMAIN-SUFFIX,wpsplus.com,DIRECT
-# === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
-# This editable block contains DIRECT process protections.
-# This profile is for users in mainland China: private, China, Apple China,
-# Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
-# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
-# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
-# PROXY.
-# To stop protecting one DIRECT process, comment out its line. Keep these
-# process rules explicit and predictable.
 - PROCESS-NAME,QQ.exe,DIRECT
 - PROCESS-NAME,QQProtect.exe,DIRECT
 - PROCESS-NAME,TIM.exe,DIRECT
