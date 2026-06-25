@@ -110,6 +110,8 @@ CHINA_APP_COMPANY_DIRECT_DOMAIN_KEYWORDS = [
     "mipay",
     "mi-img",
     "mimo",
+    "todesk",
+    "rustdesk",
 ]
 
 CHINA_APP_COMPANY_DIRECT_DOMAIN_SUFFIXES = [
@@ -119,6 +121,9 @@ CHINA_APP_COMPANY_DIRECT_DOMAIN_SUFFIXES = [
     "mijia.tech",
     "duokan.com",
     "mipay.com",
+    "todesk.com",
+    "todesk.cn",
+    "rustdesk.com",
 ]
 
 OPENAI_PROXY_DOMAIN_SUFFIXES = [
@@ -622,9 +627,10 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
         )
     first_china_company_rule = "- DOMAIN-KEYWORD,alibaba,DIRECT"
     china_company_help = """# === CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
-# Alibaba/Ant, ByteDance/Doubao/Douyin, and Xiaomi/MiMo domains are matched
-# with explicit suffixes plus broad company/product keywords before proxy
-# destination and process override rules. The broad matching is intentional.
+# Alibaba/Ant, ByteDance/Doubao/Douyin, Xiaomi/MiMo, ToDesk, and RustDesk
+# domains are matched with explicit suffixes plus broad company/product
+# keywords before proxy destination and process override rules. The broad
+# matching is intentional.
 # === END CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
 """
     if first_china_company_rule in yaml_text:

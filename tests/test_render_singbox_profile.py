@@ -213,6 +213,8 @@ class SingboxProfileRenderTests(unittest.TestCase):
             "DOMAIN-KEYWORD,mipay,DIRECT",
             "DOMAIN-KEYWORD,mi-img,DIRECT",
             "DOMAIN-KEYWORD,mimo,DIRECT",
+            "DOMAIN-KEYWORD,todesk,DIRECT",
+            "DOMAIN-KEYWORD,rustdesk,DIRECT",
         ]
         expected_suffix_rules = [
             "DOMAIN-SUFFIX,mi.com,DIRECT",
@@ -221,6 +223,9 @@ class SingboxProfileRenderTests(unittest.TestCase):
             "DOMAIN-SUFFIX,mijia.tech,DIRECT",
             "DOMAIN-SUFFIX,duokan.com,DIRECT",
             "DOMAIN-SUFFIX,mipay.com,DIRECT",
+            "DOMAIN-SUFFIX,todesk.com,DIRECT",
+            "DOMAIN-SUFFIX,todesk.cn,DIRECT",
+            "DOMAIN-SUFFIX,rustdesk.com,DIRECT",
         ]
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -232,6 +237,7 @@ class SingboxProfileRenderTests(unittest.TestCase):
             self.assertIn(rule, rules)
 
         self.assertNotIn("DOMAIN-KEYWORD,mi,DIRECT", rules)
+        self.assertNotIn("DOMAIN-KEYWORD,desk,DIRECT", rules)
         expected_keywords = {item.split(",", 2)[1] for item in expected_keyword_rules}
         for rule in rules:
             if rule.startswith("DOMAIN-KEYWORD,"):

@@ -258,9 +258,10 @@ rules:
 - PROCESS-PATH,/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking,DIRECT
 - PROCESS-PATH,/System/Cryptexes/App/usr/libexec/SafariBookmarksSyncAgent,DIRECT
 # === CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
-# Alibaba/Ant, ByteDance/Doubao/Douyin, and Xiaomi/MiMo domains are matched
-# with explicit suffixes plus broad company/product keywords before proxy
-# destination and process override rules. The broad matching is intentional.
+# Alibaba/Ant, ByteDance/Doubao/Douyin, Xiaomi/MiMo, ToDesk, and RustDesk
+# domains are matched with explicit suffixes plus broad company/product
+# keywords before proxy destination and process override rules. The broad
+# matching is intentional.
 # === END CHINA APP / COMPANY DOMAIN DIRECT PROTECTIONS ===
 - DOMAIN-KEYWORD,alibaba,DIRECT
 - DOMAIN-KEYWORD,alicdn,DIRECT
@@ -306,12 +307,17 @@ rules:
 - DOMAIN-KEYWORD,mipay,DIRECT
 - DOMAIN-KEYWORD,mi-img,DIRECT
 - DOMAIN-KEYWORD,mimo,DIRECT
+- DOMAIN-KEYWORD,todesk,DIRECT
+- DOMAIN-KEYWORD,rustdesk,DIRECT
 - DOMAIN-SUFFIX,mi.com,DIRECT
 - DOMAIN-SUFFIX,xiaomi.com,DIRECT
 - DOMAIN-SUFFIX,miui.com,DIRECT
 - DOMAIN-SUFFIX,mijia.tech,DIRECT
 - DOMAIN-SUFFIX,duokan.com,DIRECT
 - DOMAIN-SUFFIX,mipay.com,DIRECT
+- DOMAIN-SUFFIX,todesk.com,DIRECT
+- DOMAIN-SUFFIX,todesk.cn,DIRECT
+- DOMAIN-SUFFIX,rustdesk.com,DIRECT
 # === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
 # Only official OpenAI-family destination domains are forced through PROXY.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
