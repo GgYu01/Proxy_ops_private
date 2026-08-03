@@ -92,6 +92,15 @@ proxies:
   reality-opts:
     public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
     short-id: e0924c6d9062f4d5
+- name: GG-Vmrack1-Hysteria2
+  type: hysteria2
+  server: 38.65.93.39
+  port: 10005
+  password: bef500b17b5aadc91efaf6fb1e9c268ed9c811454ce87fde
+  sni: www.microsoft.com
+  skip-cert-verify: true
+  alpn:
+  - h3
 - name: GG-Dedirock
   type: vless
   server: 67.215.238.140
@@ -113,6 +122,7 @@ proxy-groups:
   - GG-US-SEA-BGP-01
   - Auto
   - GG-Vmrack1
+  - GG-Vmrack1-Hysteria2
   - GG-Dedirock
   - DIRECT
 - name: Auto
@@ -120,6 +130,7 @@ proxy-groups:
   proxies:
   - GG-US-SEA-BGP-01
   - GG-Vmrack1
+  - GG-Vmrack1-Hysteria2
   - GG-Dedirock
   url: http://www.gstatic.com/generate_204
   interval: 300

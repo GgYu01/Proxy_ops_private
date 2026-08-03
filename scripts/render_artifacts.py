@@ -360,11 +360,12 @@ def node_public_host(node: dict) -> str:
     return str(node["host"])
 
 
-def vless_link(node: dict) -> str:
+def vless_link(node: dict, *, alias: str | None = None) -> str:
     host = node_public_host(node)
     port = int(node["base_port"]) + 3
     secrets = node["secrets"]
-    alias = urllib.parse.quote(node["subscription_alias"])
+    alias_name = alias or str(node["subscription_alias"])
+    alias_encoded = urllib.parse.quote(alias_name)
     sni = first_server_name(node)
     return (
         f"vless://{secrets['VLESS_UUID']}@{host}:{port}"
@@ -372,8 +373,101 @@ def vless_link(node: dict) -> str:
         f"&pbk={secrets['REALITY_PUBLIC_KEY']}"
         f"&fp=chrome&type=tcp&flow=xtls-rprx-vision"
         f"&sni={urllib.parse.quote(sni)}"
-        f"&sid={secrets['REALITY_SHORT_ID']}#{alias}"
+        f"&sid={secrets['REALITY_SHORT_ID']}#{alias_encoded}"
     )
+
+
+def node_hysteria2_enabled(node: dict) -> bool:
+    hysteria2 = node.get("hysteria2") or {}
+    return bool(hysteria2.get("enabled"))
+
+
+def hysteria2_port(node: dict) -> int:
+    hysteria2 = node.get("hysteria2") or {}
+    return int(node["base_port"]) + int(hysteria2.get("port_offset", 5))
+
+
+def hysteria2_sni(node: dict) -> str:
+    hysteria2 = node.get("hysteria2") or {}
+    return str(hysteria2.get("sni") or first_server_name(node))
+
+
+def hysteria2_alias(node: dict, *, alias: str | None = None) -> str:
+    if alias:
+        return alias
+    hysteria2 = node.get("hysteria2") or {}
+    suffix = str(hysteria2.get("alias_suffix", "-Hysteria2"))
+    return f"{node['subscription_alias']}{suffix}"
+
+
+def hysteria2_link(node: dict, *, alias: str | None = None) -> str:
+    if not node_hysteria2_enabled(node):
+        raise ValueError(f"node {node['name']} does not have hysteria2 enabled")
+    secrets = node["secrets"]
+    hysteria2 = node.get("hysteria2") or {}
+    host = node_public_host(node)
+    port = hysteria2_port(node)
+    password = secrets["HYSTERIA2_PASSWORD"]
+    sni = hysteria2_sni(node)
+    name = urllib.parse.quote(hysteria2_alias(node, alias=alias))
+    query = f"sni={urllib.parse.quote(sni)}"
+    if hysteria2.get("insecure", True):
+        query += "&insecure=1"
+    query += "&alpn=h3"
+    return f"hysteria2://{password}@{host}:{port}/?{query}#{name}"
+
+
+def subscription_links_for_node(node: dict, *, aliases: dict[str, str] | None = None) -> list[str]:
+    aliases = aliases or {}
+    links = [vless_link(node, alias=aliases.get("vless"))]
+    if node_hysteria2_enabled(node):
+        links.append(hysteria2_link(node, alias=aliases.get("hysteria2")))
+    return links
+
+
+def extra_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> list[dict]:
+    subscriptions = load_subscriptions_config(repo_root / "inventory" / "subscriptions.yaml")
+    entries = subscriptions.get("extra_single_node_subscriptions", [])
+    if not isinstance(entries, list):
+        raise ValueError("extra_single_node_subscriptions must be a list")
+    return [dict(entry) for entry in entries]
+
+
+def extra_single_node_subscription_filename(filename: str) -> str:
+    return f"v2ray_node_{filename}.txt"
+
+
+def mihomo_proxy_hysteria2_for_node(node: dict, *, alias: str | None = None) -> dict:
+    hysteria2 = node.get("hysteria2") or {}
+    secrets = node["secrets"]
+    return {
+        "name": hysteria2_alias(node, alias=alias),
+        "type": "hysteria2",
+        "server": node_public_host(node),
+        "port": hysteria2_port(node),
+        "password": secrets["HYSTERIA2_PASSWORD"],
+        "sni": hysteria2_sni(node),
+        "skip-cert-verify": bool(hysteria2.get("insecure", True)),
+        "alpn": ["h3"],
+    }
+
+
+def mihomo_proxies_for_nodes(nodes: list[dict]) -> list[dict]:
+    proxies: list[dict] = []
+    for node in nodes:
+        proxies.append(mihomo_proxy_for_node(node))
+        if node_hysteria2_enabled(node):
+            proxies.append(mihomo_proxy_hysteria2_for_node(node))
+    return proxies
+
+
+def mihomo_proxy_names_for_nodes(nodes: list[dict]) -> list[str]:
+    names: list[str] = []
+    for node in nodes:
+        names.append(str(node["subscription_alias"]))
+        if node_hysteria2_enabled(node):
+            names.append(hysteria2_alias(node))
+    return names
 
 
 def mihomo_proxy_for_node(node: dict) -> dict:
@@ -660,7 +754,7 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
 
 def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
     nodes = subscription_publishable_nodes(repo_root)
-    proxy_names = [str(node["subscription_alias"]) for node in nodes]
+    proxy_names = mihomo_proxy_names_for_nodes(nodes)
     default_proxy = "PROXY"
     config = {
         "mixed-port": 7890,
@@ -681,7 +775,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         },
         "tun": mihomo_tun_config(repo_root),
         "dns": mihomo_dns_config(),
-        "proxies": [mihomo_proxy_for_node(node) for node in nodes],
+        "proxies": mihomo_proxies_for_nodes(nodes),
         "proxy-groups": [
             {
                 "name": "PROXY",
@@ -750,7 +844,10 @@ def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None
         nodes = [enabled_node_by_name(repo_root, node_name)]
     if not nodes:
         return ""
-    return "\n".join(vless_link(node) for node in nodes) + "\n"
+    links: list[str] = []
+    for node in nodes:
+        links.extend(subscription_links_for_node(node))
+    return "\n".join(links) + "\n"
 
 
 def render_singbox_remote_profile(repo_root: Path = REPO_ROOT) -> str:
@@ -804,6 +901,12 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
         alias = html.escape(str(node["subscription_alias"]))
         provider = html.escape(str(node.get("provider", "unknown")))
         pending_note = " · 探测异常，暂仍发布" if node_name in pending_names else ""
+        protocol_note = "VLESS Reality"
+        if node_hysteria2_enabled(node):
+            protocol_note += " · Hysteria2"
+            egress_note = str((node.get("hysteria2") or {}).get("egress_note", "")).strip()
+            if egress_note:
+                protocol_note += f" · {egress_note}"
         v2ray_url = base_url + f"/{single_node_subscription_filename(node_name)}"
         v2ray_url_html = html.escape(v2ray_url)
         node_sections.append(
@@ -815,13 +918,46 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
                     "        </div>",
                     "        <div class=\"node-copy\">",
                     f"          <h3>{alias}</h3>",
-                    f"          <p>{provider} · VLESS Reality · 端口 {int(node['base_port']) + 3}{pending_note}</p>",
+                    f"          <p>{provider} · {protocol_note} · 端口 {int(node['base_port']) + 3}{pending_note}</p>",
                     "        </div>",
                     "        <div class=\"node-actions\">",
                     f"          <a class=\"text-link\" href=\"{v2ray_url_html}\">订阅 URL</a>",
                     "          <button type=\"button\" "
                     f"data-copy=\"{html.escape(v2ray_url, quote=True)}\" "
                     f"aria-label=\"复制{alias}订阅 URL\">复制</button>",
+                    "        </div>",
+                    "        <div class=\"node-url\">",
+                    f"          <span>{v2ray_url_html}</span>",
+                    "        </div>",
+                    "      </article>",
+                ]
+            )
+        )
+
+    for extra in extra_single_node_subscriptions(repo_root):
+        source_node_name = str(extra["source_node"])
+        filename = str(extra["filename"])
+        title = html.escape(str(extra.get("title", filename)))
+        description = html.escape(str(extra.get("description", "")))
+        aliases = dict(extra.get("aliases") or {})
+        v2ray_url = base_url + f"/{extra_single_node_subscription_filename(filename)}"
+        v2ray_url_html = html.escape(v2ray_url)
+        node_sections.append(
+            "\n".join(
+                [
+                    "      <article class=\"node-row\">",
+                    "        <div class=\"node-rank\">",
+                    "          <span>+</span>",
+                    "        </div>",
+                    "        <div class=\"node-copy\">",
+                    f"          <h3>{title}</h3>",
+                    f"          <p>{description}</p>",
+                    "        </div>",
+                    "        <div class=\"node-actions\">",
+                    f"          <a class=\"text-link\" href=\"{v2ray_url_html}\">订阅 URL</a>",
+                    "          <button type=\"button\" "
+                    f"data-copy=\"{html.escape(v2ray_url, quote=True)}\" "
+                    f"aria-label=\"复制{title}订阅 URL\">复制</button>",
                     "        </div>",
                     "        <div class=\"node-url\">",
                     f"          <span>{v2ray_url_html}</span>",
@@ -1870,10 +2006,26 @@ def remove_legacy_import_deep_link_files(repo_root: Path = REPO_ROOT) -> None:
 def prune_stale_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> None:
     subscriptions_dir = repo_root / "generated" / "subscriptions"
     eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
+    eligible_names.update(
+        str(entry["filename"]) for entry in extra_single_node_subscriptions(repo_root)
+    )
     for path in subscriptions_dir.glob("v2ray_node_*.txt"):
         node_name = path.name.removeprefix("v2ray_node_").removesuffix(".txt")
         if node_name not in eligible_names:
             path.unlink()
+
+
+def render_extra_single_node_subscription(repo_root: Path, entry: dict) -> str:
+    source_node_name = str(entry["source_node"])
+    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
+    if source_node_name not in eligible_names:
+        return ""
+    node = enabled_node_by_name(repo_root, source_node_name)
+    aliases = dict(entry.get("aliases") or {})
+    links = subscription_links_for_node(node, aliases=aliases)
+    if not links:
+        return ""
+    return "\n".join(links) + "\n"
 
 
 def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
@@ -1895,6 +2047,11 @@ def write_generated_artifacts(repo_root: Path = REPO_ROOT) -> None:
         write_text(
             repo_root / "generated" / "subscriptions" / single_node_subscription_filename(node["name"]),
             render_v2ray_subscription(repo_root, node_name=node["name"]),
+        )
+    for entry in extra_single_node_subscriptions(repo_root):
+        write_text(
+            repo_root / "generated" / "subscriptions" / extra_single_node_subscription_filename(str(entry["filename"])),
+            render_extra_single_node_subscription(repo_root, entry),
         )
     prune_stale_single_node_subscriptions(repo_root)
     singbox_manifest = render_singbox_remote_profile(repo_root)

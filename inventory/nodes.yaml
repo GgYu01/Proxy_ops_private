@@ -50,7 +50,14 @@
       "change_policy": "mutable",
       "provider": "VMRack",
       "deployment_topology": "standalone_vps",
-      "runtime_service": "cliproxy-plus"
+      "runtime_service": "cliproxy-plus",
+      "hysteria2": {
+        "enabled": true,
+        "port_offset": 5,
+        "sni": "www.microsoft.com",
+        "insecure": true,
+        "egress_note": "WireGuard residential NAT via wg0"
+      }
     },
     {
       "name": "vmrack2",

@@ -37,5 +37,17 @@
     "curl_timeout_seconds": 12,
     "proxy_probe_attempts": 2,
     "ledger_path": "state/node_availability.json"
-  }
+  },
+  "extra_single_node_subscriptions": [
+    {
+      "filename": "qqpw",
+      "source_node": "vmrack1",
+      "title": "QQPW-Residential",
+      "description": "vmrack1 VLESS/Hysteria2 with WireGuard residential egress",
+      "aliases": {
+        "vless": "QQPW-Residential-Reality",
+        "hysteria2": "QQPW-Residential-Hysteria2"
+      }
+    }
+  ]
 }

@@ -64,11 +64,13 @@ class V2RayRenderTests(unittest.TestCase):
         self.assertNotIn("GG-Lisahost-KR", artifact)
         self.assertNotIn("GG-Vmrack2", artifact)
         self.assertEqual(3, sum(1 for line in artifact.splitlines() if line.startswith("vless://")))
+        self.assertEqual(1, sum(1 for line in artifact.splitlines() if line.startswith("hysteria2://")))
+        self.assertIn("GG-Vmrack1-Hysteria2", artifact)
         self.assertIn("@69.5.53.82:10003", artifact)
         self.assertIn("@38.65.93.39:10003", artifact)
         self.assertIn("@67.215.238.140:10003", artifact)
         self.assertIn("sni=www.cloudflare.com", artifact)
-        self.assertNotIn("sni=www.microsoft.com", artifact)
+        self.assertIn("sni=www.microsoft.com", artifact)
         self.assertNotIn("@38.34.8.59:10003", artifact)
         self.assertNotIn("@203.227.191.106:10003", artifact)
         self.assertNotIn("@38.65.93.94:10003", artifact)
@@ -99,6 +101,21 @@ class V2RayRenderTests(unittest.TestCase):
             artifact = render_artifacts.render_v2ray_subscription(repo_root, node_name="lisahost")
 
         self.assertEqual("", artifact)
+
+    def test_vmrack1_subscription_includes_hysteria2_and_qqpw_alias_profile(self) -> None:
+        render_artifacts = load_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            vmrack1 = render_artifacts.render_v2ray_subscription(repo_root, node_name="vmrack1")
+            qqpw = render_artifacts.render_extra_single_node_subscription(
+                repo_root,
+                render_artifacts.extra_single_node_subscriptions(repo_root)[0],
+            )
+
+        self.assertIn("GG-Vmrack1-Hysteria2", vmrack1)
+        self.assertIn("@38.65.93.39:10005", vmrack1)
+        self.assertIn("QQPW-Residential-Reality", qqpw)
+        self.assertIn("QQPW-Residential-Hysteria2", qqpw)
 
 
 if __name__ == "__main__":
