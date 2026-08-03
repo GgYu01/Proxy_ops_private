@@ -137,6 +137,24 @@ class SingboxProfileRenderTests(unittest.TestCase):
             singbox["deeplink"],
         )
 
+    def test_mihomo_profile_keeps_gglohh_top_direct_and_exempt_from_fake_ip(self) -> None:
+        render_artifacts = load_module()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            render_artifacts.write_generated_artifacts(repo_root)
+
+            mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
+
+        self.assertIn("DOMAIN-SUFFIX,gglohh.top,DIRECT", mihomo)
+        self.assertIn("+.gglohh.top", mihomo)
+        self.assertIn("*.gglohh.top", mihomo)
+        self.assertIn("nameserver-policy:", mihomo)
+        self.assertIn("223.5.5.5", mihomo)
+        self.assertIn("119.29.29.29", mihomo)
+        self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,proxy,PROXY"))
+        self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,gfw,PROXY"))
+
 
 if __name__ == "__main__":
     unittest.main()

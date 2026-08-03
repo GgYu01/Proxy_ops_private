@@ -43,12 +43,18 @@ dns:
   - time.windows.com
   - time.apple.com
   - time.asia.apple.com
+  - +.gglohh.top
+  - '*.gglohh.top'
   default-nameserver:
   - 223.5.5.5
   - 119.29.29.29
   nameserver:
   - https://dns.alidns.com/dns-query
   - https://doh.pub/dns-query
+  nameserver-policy:
+    +.gglohh.top:
+    - 223.5.5.5
+    - 119.29.29.29
   proxy-server-nameserver:
   - https://dns.alidns.com/dns-query
   - https://doh.pub/dns-query
@@ -352,10 +358,7 @@ rules:
 - PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
-# === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
-# Domain and DustinWin/ruleset_geodata rules start below.
-- DOMAIN,subs.sea.prod.gglohh.top,DIRECT
-- DOMAIN-SUFFIX,subs.sea.prod.gglohh.top,DIRECT
+- DOMAIN-SUFFIX,gglohh.top,DIRECT
 - RULE-SET,privateip,DIRECT,no-resolve
 - RULE-SET,ads,REJECT
 - RULE-SET,apple-cn,DIRECT

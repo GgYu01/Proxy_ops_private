@@ -424,9 +424,14 @@ def mihomo_dns_config() -> dict:
             "time.windows.com",
             "time.apple.com",
             "time.asia.apple.com",
+            "+.gglohh.top",
+            "*.gglohh.top",
         ],
         "default-nameserver": ["223.5.5.5", "119.29.29.29"],
         "nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+        "nameserver-policy": {
+            '+.gglohh.top': ['223.5.5.5', '119.29.29.29'],
+        },
         "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
         "fallback": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
         "fallback-filter": {
@@ -581,6 +586,10 @@ def mihomo_wps_domain_direct_rules() -> list[str]:
     ]
 
 
+def mihomo_gglohh_direct_rules() -> list[str]:
+    return ["DOMAIN-SUFFIX,gglohh.top,DIRECT"]
+
+
 def mihomo_openai_domain_proxy_rules() -> list[str]:
     return [f"DOMAIN-SUFFIX,{domain},PROXY" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
 
@@ -653,7 +662,6 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
     nodes = subscription_publishable_nodes(repo_root)
     proxy_names = [str(node["subscription_alias"]) for node in nodes]
     default_proxy = "PROXY"
-    subscription_host = public_subscriptions_host(repo_root)
     config = {
         "mixed-port": 7890,
         "allow-lan": False,
@@ -710,8 +718,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
-            f"DOMAIN,{subscription_host},DIRECT",
-            f"DOMAIN-SUFFIX,{subscription_host},DIRECT",
+            *mihomo_gglohh_direct_rules(),
             "RULE-SET,privateip,DIRECT,no-resolve",
             "RULE-SET,ads,REJECT",
             "RULE-SET,apple-cn,DIRECT",
