@@ -115,6 +115,29 @@ proxies:
   reality-opts:
     public-key: R-z0jZUZ45XewPpCGJcx8gZvXBXqO50aEa7yWDmLSyI
     short-id: 38b9604a52692bd9
+- name: QQPW-Residential-Reality
+  type: vless
+  server: 38.65.93.39
+  port: 10003
+  uuid: 46e1f1cc-6476-4fbc-b25d-969fa643c816
+  network: tcp
+  tls: true
+  udp: true
+  flow: xtls-rprx-vision
+  servername: www.cloudflare.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
+    short-id: e0924c6d9062f4d5
+- name: QQPW-Residential-Hysteria2
+  type: hysteria2
+  server: 38.65.93.39
+  port: 10005
+  password: bef500b17b5aadc91efaf6fb1e9c268ed9c811454ce87fde
+  sni: www.microsoft.com
+  skip-cert-verify: true
+  alpn:
+  - h3
 proxy-groups:
 - name: PROXY
   type: select
@@ -124,6 +147,8 @@ proxy-groups:
   - GG-Vmrack1
   - GG-Vmrack1-Hysteria2
   - GG-Dedirock
+  - QQPW-Residential-Reality
+  - QQPW-Residential-Hysteria2
   - DIRECT
 - name: Auto
   type: url-test
@@ -132,6 +157,8 @@ proxy-groups:
   - GG-Vmrack1
   - GG-Vmrack1-Hysteria2
   - GG-Dedirock
+  - QQPW-Residential-Reality
+  - QQPW-Residential-Hysteria2
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 80

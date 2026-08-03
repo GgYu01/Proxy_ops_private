@@ -452,28 +452,77 @@ def mihomo_proxy_hysteria2_for_node(node: dict, *, alias: str | None = None) -> 
     }
 
 
-def mihomo_proxies_for_nodes(nodes: list[dict]) -> list[dict]:
+def extra_single_node_entries_for_source(repo_root: Path, source_node_name: str) -> list[dict]:
+    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
+    if source_node_name not in eligible_names:
+        return []
+    return [
+        entry
+        for entry in extra_single_node_subscriptions(repo_root)
+        if str(entry.get("source_node")) == source_node_name
+    ]
+
+
+def subscription_links_for_extra_entry(repo_root: Path, entry: dict) -> list[str]:
+    source_node_name = str(entry["source_node"])
+    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
+    if source_node_name not in eligible_names:
+        return []
+    node = enabled_node_by_name(repo_root, source_node_name)
+    aliases = dict(entry.get("aliases") or {})
+    return subscription_links_for_node(node, aliases=aliases)
+
+
+def mihomo_proxies_for_extra_entry(repo_root: Path, entry: dict) -> list[dict]:
+    source_node_name = str(entry["source_node"])
+    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
+    if source_node_name not in eligible_names:
+        return []
+    node = enabled_node_by_name(repo_root, source_node_name)
+    aliases = dict(entry.get("aliases") or {})
+    proxies = [mihomo_proxy_for_node(node, alias=aliases.get("vless"))]
+    if node_hysteria2_enabled(node):
+        proxies.append(mihomo_proxy_hysteria2_for_node(node, alias=aliases.get("hysteria2")))
+    return proxies
+
+
+def mihomo_extra_proxies(repo_root: Path) -> list[dict]:
+    proxies: list[dict] = []
+    for entry in extra_single_node_subscriptions(repo_root):
+        proxies.extend(mihomo_proxies_for_extra_entry(repo_root, entry))
+    return proxies
+
+
+def mihomo_extra_proxy_names(repo_root: Path) -> list[str]:
+    return [str(proxy["name"]) for proxy in mihomo_extra_proxies(repo_root)]
+
+
+def mihomo_proxies_for_nodes(nodes: list[dict], *, repo_root: Path | None = None) -> list[dict]:
     proxies: list[dict] = []
     for node in nodes:
         proxies.append(mihomo_proxy_for_node(node))
         if node_hysteria2_enabled(node):
             proxies.append(mihomo_proxy_hysteria2_for_node(node))
+    if repo_root is not None:
+        proxies.extend(mihomo_extra_proxies(repo_root))
     return proxies
 
 
-def mihomo_proxy_names_for_nodes(nodes: list[dict]) -> list[str]:
+def mihomo_proxy_names_for_nodes(nodes: list[dict], *, repo_root: Path | None = None) -> list[str]:
     names: list[str] = []
     for node in nodes:
         names.append(str(node["subscription_alias"]))
         if node_hysteria2_enabled(node):
             names.append(hysteria2_alias(node))
+    if repo_root is not None:
+        names.extend(mihomo_extra_proxy_names(repo_root))
     return names
 
 
-def mihomo_proxy_for_node(node: dict) -> dict:
+def mihomo_proxy_for_node(node: dict, *, alias: str | None = None) -> dict:
     secrets = node["secrets"]
     return {
-        "name": str(node["subscription_alias"]),
+        "name": alias or str(node["subscription_alias"]),
         "type": "vless",
         "server": node_public_host(node),
         "port": int(node["base_port"]) + 3,
@@ -754,7 +803,7 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
 
 def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
     nodes = subscription_publishable_nodes(repo_root)
-    proxy_names = mihomo_proxy_names_for_nodes(nodes)
+    proxy_names = mihomo_proxy_names_for_nodes(nodes, repo_root=repo_root)
     default_proxy = "PROXY"
     config = {
         "mixed-port": 7890,
@@ -775,7 +824,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         },
         "tun": mihomo_tun_config(repo_root),
         "dns": mihomo_dns_config(),
-        "proxies": mihomo_proxies_for_nodes(nodes),
+        "proxies": mihomo_proxies_for_nodes(nodes, repo_root=repo_root),
         "proxy-groups": [
             {
                 "name": "PROXY",
@@ -847,6 +896,12 @@ def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None
     links: list[str] = []
     for node in nodes:
         links.extend(subscription_links_for_node(node))
+        if node_name is not None:
+            for entry in extra_single_node_entries_for_source(repo_root, str(node["name"])):
+                links.extend(subscription_links_for_extra_entry(repo_root, entry))
+    if node_name is None:
+        for entry in extra_single_node_subscriptions(repo_root):
+            links.extend(subscription_links_for_extra_entry(repo_root, entry))
     return "\n".join(links) + "\n"
 
 
@@ -2016,13 +2071,7 @@ def prune_stale_single_node_subscriptions(repo_root: Path = REPO_ROOT) -> None:
 
 
 def render_extra_single_node_subscription(repo_root: Path, entry: dict) -> str:
-    source_node_name = str(entry["source_node"])
-    eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
-    if source_node_name not in eligible_names:
-        return ""
-    node = enabled_node_by_name(repo_root, source_node_name)
-    aliases = dict(entry.get("aliases") or {})
-    links = subscription_links_for_node(node, aliases=aliases)
+    links = subscription_links_for_extra_entry(repo_root, entry)
     if not links:
         return ""
     return "\n".join(links) + "\n"

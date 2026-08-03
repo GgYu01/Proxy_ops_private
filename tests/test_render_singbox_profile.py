@@ -155,6 +155,26 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,proxy,PROXY"))
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,gfw,PROXY"))
 
+    def test_mihomo_profile_includes_vmrack_and_qqpw_aliases(self) -> None:
+        render_artifacts = load_module()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            render_artifacts.write_generated_artifacts(repo_root)
+
+            mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
+            v2ray = (repo_root / "generated" / "subscriptions" / "v2ray_nodes.txt").read_text(encoding="utf-8")
+
+        for name in (
+            "GG-Vmrack1",
+            "GG-Vmrack1-Hysteria2",
+            "QQPW-Residential-Reality",
+            "QQPW-Residential-Hysteria2",
+        ):
+            self.assertIn(f"name: {name}", mihomo)
+        self.assertIn("QQPW-Residential-Reality", v2ray)
+        self.assertIn("QQPW-Residential-Hysteria2", v2ray)
+
 
 if __name__ == "__main__":
     unittest.main()
