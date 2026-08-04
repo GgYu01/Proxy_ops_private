@@ -6,7 +6,7 @@ Generated for the GG proxy subscription service.
 
 - Published profile: `mihomo-universal.yaml`
 - Node source: current enabled `Proxy_ops_private` inventory
-- Published VLESS Reality nodes: GG-US-SEA-BGP-01, GG-Vmrack1, GG-Dedirock
+- Published VLESS Reality nodes: GG-US-SEA-BGP-01, GG-Vmrack1
 - Ruleset source: `DustinWin/ruleset_geodata` release asset `mihomo-ruleset`
 - TUN mode: enabled with `auto-route`, `auto-redirect`, `strict-route`, and DNS hijack for `any:53`
 
@@ -25,6 +25,29 @@ Generated for the GG proxy subscription service.
 - Cursor is also protected by DIRECT process rules in this profile.
 - WPS / Kingsoft domain rules are evaluated after Cursor and before process rules. The first rule is `DOMAIN-KEYWORD,kingsoft,DIRECT`, followed by suffixes: `kingsoft.com`, `kingsoft-office-service.com`, `wps.cn`, `wpscdn.cn`, `wpscdn.com`, `kdocs.cn`, `kdocs.com`, `ksosoft.com`, `ksord.com`, `wpsplus.com`.
 - WPS Office, cloud sync (`wpscloudsvr.exe`), and update helpers are also protected by DIRECT process/path rules on Windows.
+- Domestic APT and container registry mirrors are DIRECT and exempt from fake-ip so WSL apt/podman and local package workflows resolve real addresses. Covered suffixes: `mirrors.tuna.tsinghua.edu.cn`, `deb.debian.org`, `security.debian.org`, `ftp.debian.org`, `mirrors.aliyun.com`, `mirrors.ustc.edu.cn`, `mirrors.huaweicloud.com`, `mirrors.cloud.tencent.com`, `mirror.nju.edu.cn`, `mirrors.163.com`, `docker.m.daocloud.io`, `daocloud.io`.
+- Domestic platform domains are DIRECT and exempt from fake-ip so SSH/Git to self-hosted services resolve real addresses. Covered suffixes: `gglohh.top`, `ringzle.com`.
+- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations.
+
+## Domestic platform DIRECT rules
+
+- `DOMAIN-SUFFIX,gglohh.top,DIRECT`
+- `DOMAIN-SUFFIX,ringzle.com,DIRECT`
+
+## Domestic mirror DIRECT rules
+
+- `DOMAIN-SUFFIX,mirrors.tuna.tsinghua.edu.cn,DIRECT`
+- `DOMAIN-SUFFIX,deb.debian.org,DIRECT`
+- `DOMAIN-SUFFIX,security.debian.org,DIRECT`
+- `DOMAIN-SUFFIX,ftp.debian.org,DIRECT`
+- `DOMAIN-SUFFIX,mirrors.aliyun.com,DIRECT`
+- `DOMAIN-SUFFIX,mirrors.ustc.edu.cn,DIRECT`
+- `DOMAIN-SUFFIX,mirrors.huaweicloud.com,DIRECT`
+- `DOMAIN-SUFFIX,mirrors.cloud.tencent.com,DIRECT`
+- `DOMAIN-SUFFIX,mirror.nju.edu.cn,DIRECT`
+- `DOMAIN-SUFFIX,mirrors.163.com,DIRECT`
+- `DOMAIN-SUFFIX,docker.m.daocloud.io,DIRECT`
+- `DOMAIN-SUFFIX,daocloud.io,DIRECT`
 
 ## WPS / Kingsoft domain DIRECT rules
 
@@ -48,6 +71,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### DIRECT process names
 
+- `ssh.exe`
+- `git.exe`
 - `QQ.exe`
 - `QQProtect.exe`
 - `TIM.exe`
@@ -123,6 +148,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### DIRECT process names
 
+- `ssh`
+- `git`
 - `QQ`
 - `Cursor`
 - `Cursor Helper`
@@ -182,6 +209,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### DIRECT process names
 
+- `ssh`
+- `git`
 - `qq`
 - `cursor`
 - `cursor-agent`

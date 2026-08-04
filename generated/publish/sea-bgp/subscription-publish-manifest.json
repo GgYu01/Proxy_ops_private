@@ -9,9 +9,9 @@
   },
   "generated_files": [
     {
-      "bytes": 18853,
+      "bytes": 18091,
       "path": "generated/subscriptions/index.html",
-      "sha256": "ce45c37937b4f9d0eef52e94bd1604b4ae03f9d1513ddd121d710e108fbcf871"
+      "sha256": "50d6168ee1872fdedfba23f52bd45640cb809eda209e456b801d36e5f171403e"
     },
     {
       "bytes": 14674,
@@ -19,14 +19,14 @@
       "sha256": "1f336f1a37f6d0fa5017412d507066cba463254de8fff145fb1366104126babc"
     },
     {
-      "bytes": 9792,
+      "bytes": 11276,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "fd20623c757b23cc008da6a97d88c1d73b375c7c8fbbaf6c062ed12ef4ed0cd0"
+      "sha256": "5b955c705c0d839e41424ec63f58d04a6b5baa0afb5dd1fb052e398293587a9c"
     },
     {
-      "bytes": 14581,
+      "bytes": 16336,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "80ec60839ff964488eefa1b10fcb121a61cb9ead6f8d92bdb9a43fe3956580ff"
+      "sha256": "2d85918d5543b5d13010107f53916f9fdb68b6c76f9d72d87edafdcb1e1d6e49"
     },
     {
       "bytes": 329,
@@ -37,11 +37,6 @@
       "bytes": 329,
       "path": "generated/subscriptions/singbox_remote_profile.json",
       "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
-    },
-    {
-      "bytes": 245,
-      "path": "generated/subscriptions/v2ray_node_dedirock.txt",
-      "sha256": "a4f72a120059b7ebb8d68bea3a377d1749241d88f1b4f0586539e800e3e485c9"
     },
     {
       "bytes": 404,
@@ -59,16 +54,15 @@
       "sha256": "a0aee8c578f2a3c77578175a0b946145e4ce49a55f58d6b1b89aa85ed11af04b"
     },
     {
-      "bytes": 1279,
+      "bytes": 1034,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "43ca356b4863cf23d36f2aacd1a05705bb76b498a77e9a76870550b517b0474c"
+      "sha256": "ed6e8f3c2569eae381fc991899a069f63b755c271b6b827068f741f5e517bc99"
     }
   ],
   "publish_node": "us_sea_bgp_01",
   "published_nodes": [
     "GG-US-SEA-BGP-01",
-    "GG-Vmrack1",
-    "GG-Dedirock"
+    "GG-Vmrack1"
   ],
   "remote_config_dir": "/srv/proxy-subscriptions/config",
   "remote_container_config": "/etc/containers/systemd/gg-proxy-subscriptions.container",

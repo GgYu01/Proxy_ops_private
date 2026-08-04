@@ -155,6 +155,48 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,proxy,PROXY"))
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,gglohh.top,DIRECT"), mihomo.index("RULE-SET,gfw,PROXY"))
 
+    def test_mihomo_profile_keeps_ringzle_direct_and_exempt_from_fake_ip(self) -> None:
+        render_artifacts = load_module()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            render_artifacts.write_generated_artifacts(repo_root)
+
+            mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
+
+        self.assertIn("DOMAIN-SUFFIX,ringzle.com,DIRECT", mihomo)
+        self.assertIn("+.ringzle.com", mihomo)
+        self.assertIn("*.ringzle.com", mihomo)
+        self.assertIn("+.ringzle.com:", mihomo)
+        self.assertIn("PROCESS-NAME,ssh.exe,DIRECT", mihomo)
+        self.assertIn("PROCESS-NAME,git.exe,DIRECT", mihomo)
+        self.assertLess(mihomo.index("DOMAIN-SUFFIX,ringzle.com,DIRECT"), mihomo.index("RULE-SET,proxy,PROXY"))
+        self.assertLess(mihomo.index("DOMAIN-SUFFIX,ringzle.com,DIRECT"), mihomo.index("RULE-SET,gfw,PROXY"))
+
+    def test_mihomo_profile_keeps_mirror_domains_direct_and_exempt_from_fake_ip(self) -> None:
+        render_artifacts = load_module()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            render_artifacts.write_generated_artifacts(repo_root)
+
+            mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
+
+        for domain in (
+            "mirrors.tuna.tsinghua.edu.cn",
+            "deb.debian.org",
+            "docker.m.daocloud.io",
+            "daocloud.io",
+        ):
+            self.assertIn(f"DOMAIN-SUFFIX,{domain},DIRECT", mihomo)
+            self.assertIn(domain, mihomo)
+            self.assertIn(f"+.{domain}", mihomo)
+            self.assertIn(f"+.{domain}:", mihomo)
+        self.assertLess(
+            mihomo.index("DOMAIN-SUFFIX,mirrors.tuna.tsinghua.edu.cn,DIRECT"),
+            mihomo.index("RULE-SET,proxy,PROXY"),
+        )
+
     def test_mihomo_profile_includes_vmrack_and_qqpw_aliases(self) -> None:
         render_artifacts = load_module()
 

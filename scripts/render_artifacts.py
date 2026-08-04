@@ -65,6 +65,30 @@ WPS_DIRECT_DOMAIN_KEYWORDS = [
     "kingsoft",
 ]
 
+# Domestic platform and self-hosted services must bypass fake-ip and stay DIRECT.
+# SSH/Git workflows to these hosts break when mihomo returns fake-ip addresses.
+DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES = [
+    "gglohh.top",
+    "ringzle.com",
+]
+
+# Domestic APT and container registry mirrors must bypass fake-ip and stay DIRECT.
+# WSL apt/podman workflows depend on these resolving to real addresses.
+MIRROR_DIRECT_DOMAIN_SUFFIXES = [
+    "mirrors.tuna.tsinghua.edu.cn",
+    "deb.debian.org",
+    "security.debian.org",
+    "ftp.debian.org",
+    "mirrors.aliyun.com",
+    "mirrors.ustc.edu.cn",
+    "mirrors.huaweicloud.com",
+    "mirrors.cloud.tencent.com",
+    "mirror.nju.edu.cn",
+    "mirrors.163.com",
+    "docker.m.daocloud.io",
+    "daocloud.io",
+]
+
 OPENAI_PROXY_DOMAIN_SUFFIXES = [
     "openai.com",
     "chatgpt.com",
@@ -87,6 +111,8 @@ PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
 
 DIRECT_PROCESS_NAMES_BY_PLATFORM = {
     "windows": [
+        "ssh.exe",
+        "git.exe",
         "QQ.exe",
         "QQProtect.exe",
         "TIM.exe",
@@ -109,6 +135,8 @@ DIRECT_PROCESS_NAMES_BY_PLATFORM = {
         "ksomisc.exe",
     ],
     "macos": [
+        "ssh",
+        "git",
         "QQ",
         "Cursor",
         "Cursor Helper",
@@ -121,6 +149,8 @@ DIRECT_PROCESS_NAMES_BY_PLATFORM = {
         "WXWork",
     ],
     "linux": [
+        "ssh",
+        "git",
         "qq",
         "cursor",
         "cursor-agent",
@@ -553,6 +583,7 @@ def mihomo_rule_provider(name: str, behavior: str) -> dict:
 
 
 def mihomo_dns_config() -> dict:
+    domestic_resolvers = ["223.5.5.5", "119.29.29.29"]
     return {
         "enable": True,
         "listen": "0.0.0.0:1053",
@@ -567,14 +598,12 @@ def mihomo_dns_config() -> dict:
             "time.windows.com",
             "time.apple.com",
             "time.asia.apple.com",
-            "+.gglohh.top",
-            "*.gglohh.top",
+            *mihomo_domestic_platform_fake_ip_filter_patterns(),
+            *mihomo_mirror_fake_ip_filter_patterns(),
         ],
-        "default-nameserver": ["223.5.5.5", "119.29.29.29"],
+        "default-nameserver": domestic_resolvers,
         "nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
-        "nameserver-policy": {
-            '+.gglohh.top': ['223.5.5.5', '119.29.29.29'],
-        },
+        "nameserver-policy": mihomo_domestic_dns_nameserver_policy(),
         "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
         "fallback": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
         "fallback-filter": {
@@ -729,8 +758,47 @@ def mihomo_wps_domain_direct_rules() -> list[str]:
     ]
 
 
-def mihomo_gglohh_direct_rules() -> list[str]:
-    return ["DOMAIN-SUFFIX,gglohh.top,DIRECT"]
+def mihomo_domestic_platform_fake_ip_filter_patterns() -> list[str]:
+    patterns: list[str] = []
+    seen: set[str] = set()
+    for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES:
+        for pattern in (domain, f"+.{domain}", f"*.{domain}"):
+            if pattern not in seen:
+                patterns.append(pattern)
+                seen.add(pattern)
+    return patterns
+
+
+def mihomo_domestic_platform_direct_rules() -> list[str]:
+    return [
+        f"DOMAIN-SUFFIX,{domain},DIRECT"
+        for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES
+    ]
+
+
+def mihomo_mirror_fake_ip_filter_patterns() -> list[str]:
+    patterns: list[str] = []
+    seen: set[str] = set()
+    for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES:
+        for pattern in (domain, f"+.{domain}", f"*.{domain}"):
+            if pattern not in seen:
+                patterns.append(pattern)
+                seen.add(pattern)
+    return patterns
+
+
+def mihomo_domestic_dns_nameserver_policy() -> dict[str, list[str]]:
+    domestic_resolvers = ["223.5.5.5", "119.29.29.29"]
+    policy: dict[str, list[str]] = {}
+    for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES:
+        policy[f"+.{domain}"] = domestic_resolvers
+    for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES:
+        policy[f"+.{domain}"] = domestic_resolvers
+    return policy
+
+
+def mihomo_mirror_direct_rules() -> list[str]:
+    return [f"DOMAIN-SUFFIX,{domain},DIRECT" for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES]
 
 
 def mihomo_openai_domain_proxy_rules() -> list[str]:
@@ -861,7 +929,8 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
-            *mihomo_gglohh_direct_rules(),
+            *mihomo_domestic_platform_direct_rules(),
+            *mihomo_mirror_direct_rules(),
             "RULE-SET,privateip,DIRECT,no-resolve",
             "RULE-SET,ads,REJECT",
             "RULE-SET,apple-cn,DIRECT",
@@ -1947,6 +2016,17 @@ Generated for the GG proxy subscription service.
 - Cursor is also protected by DIRECT process rules in this profile.
 - WPS / Kingsoft domain rules are evaluated after Cursor and before process rules. The first rule is `DOMAIN-KEYWORD,kingsoft,DIRECT`, followed by suffixes: {", ".join(f"`{domain}`" for domain in WPS_DIRECT_DOMAIN_SUFFIXES)}.
 - WPS Office, cloud sync (`wpscloudsvr.exe`), and update helpers are also protected by DIRECT process/path rules on Windows.
+- Domestic APT and container registry mirrors are DIRECT and exempt from fake-ip so WSL apt/podman and local package workflows resolve real addresses. Covered suffixes: {", ".join(f"`{domain}`" for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES)}.
+- Domestic platform domains are DIRECT and exempt from fake-ip so SSH/Git to self-hosted services resolve real addresses. Covered suffixes: {", ".join(f"`{domain}`" for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES)}.
+- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations.
+
+## Domestic platform DIRECT rules
+
+{chr(10).join(f"- `DOMAIN-SUFFIX,{domain},DIRECT`" for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES)}
+
+## Domestic mirror DIRECT rules
+
+{chr(10).join(f"- `DOMAIN-SUFFIX,{domain},DIRECT`" for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES)}
 
 ## WPS / Kingsoft domain DIRECT rules
 
