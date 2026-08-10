@@ -102,11 +102,114 @@ OPENAI_PROXY_DOMAIN_SUFFIXES = [
 
 PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [],
+    "macos": [],
+    "linux": [],
+}
+
+# Browsers (and browser-like fingerprint surfaces) go through ChatGPT so
+# HTTP + WebRTC/STUN share the same QQPW residential exit.
+CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
+    "windows": [
+        "chrome.exe",
+        "msedge.exe",
+        "firefox.exe",
+        "brave.exe",
+        "opera.exe",
+        "vivaldi.exe",
+        "chromium.exe",
+        "ChatGPT.exe",
+        "ChatGPT Atlas.exe",
+        "ChatGPTAtlas.exe",
+    ],
     "macos": [
+        "Google Chrome",
+        "Google Chrome Helper",
+        "Chromium",
+        "Microsoft Edge",
+        "Microsoft Edge Helper",
+        "Firefox",
+        "Brave Browser",
+        "Opera",
+        "Vivaldi",
+        "Safari",
+        "ChatGPT",
+        "ChatGPT Helper",
+        "ChatGPT Atlas",
+        "ChatGPT Atlas Helper",
+        "ChatGPTAtlas",
+        "ChatGPTAtlas Helper",
+    ],
+    "linux": [
+        "google-chrome",
+        "chrome",
+        "chromium",
+        "chromium-browser",
+        "microsoft-edge",
+        "msedge",
+        "firefox",
+        "brave",
+        "brave-browser",
+        "opera",
+        "vivaldi",
+        "chatgpt",
+        "chatgpt-atlas",
+        "chatgptatlas",
+    ],
+}
+
+CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
+    "windows": [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Users\*\AppData\Local\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Users\*\AppData\Local\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe",
+        r"C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe",
+        r"C:\Program Files\Mozilla Firefox\firefox.exe",
+        r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
+        r"C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe",
+        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe",
+        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe",
+        r"C:\Program Files\OpenAI\ChatGPT\*",
+        r"C:\Users\*\AppData\Local\Programs\ChatGPT\*",
+        r"C:\Program Files\OpenAI\ChatGPT Atlas\*",
+        r"C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*",
+    ],
+    "macos": [
+        "/Applications/Google Chrome.app/Contents/*",
+        "/Applications/Chromium.app/Contents/*",
+        "/Applications/Microsoft Edge.app/Contents/*",
+        "/Applications/Firefox.app/Contents/*",
+        "/Applications/Brave Browser.app/Contents/*",
+        "/Applications/Opera.app/Contents/*",
+        "/Applications/Vivaldi.app/Contents/*",
         "/Applications/Safari.app/Contents/*",
         "/System/Applications/Safari.app/Contents/*",
+        "/Users/*/Applications/Google Chrome.app/Contents/*",
+        "/Users/*/Applications/Microsoft Edge.app/Contents/*",
+        "/Applications/ChatGPT.app/Contents/*",
+        "/Applications/ChatGPT Atlas.app/Contents/*",
+        "/Users/*/Applications/ChatGPT.app/Contents/*",
+        "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
     ],
-    "linux": [],
+    "linux": [
+        "/opt/google/chrome/*",
+        "/usr/bin/google-chrome*",
+        "/usr/bin/chromium*",
+        "/opt/microsoft/msedge/*",
+        "/usr/bin/microsoft-edge*",
+        "/usr/bin/firefox*",
+        "/opt/brave.com/brave/*",
+        "/usr/bin/brave*",
+        "/opt/chatgpt/*",
+        "/usr/bin/chatgpt*",
+        "/opt/chatgpt-atlas/*",
+        "/usr/bin/chatgpt-atlas*",
+        "/usr/bin/chatgptatlas*",
+    ],
 }
 
 DIRECT_PROCESS_NAMES_BY_PLATFORM = {
@@ -205,34 +308,18 @@ PROCESS_NAMES_BY_PLATFORM = {
 
 DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [
-        r"C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe",
-        r"C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe",
         r"C:\Users\*\AppData\Local\Programs\Cursor\*",
         r"C:\Users\*\AppData\Local\Kingsoft\WPS Office\*",
         r"C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe",
         r"C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*",
-        r"C:\Program Files\OpenAI\ChatGPT\*",
-        r"C:\Users\*\AppData\Local\Programs\ChatGPT\*",
-        r"C:\Program Files\OpenAI\ChatGPT Atlas\*",
-        r"C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*",
     ],
     "macos": [
         "/Applications/Cursor.app/Contents/*",
-        "/Applications/ChatGPT.app/Contents/*",
-        "/Applications/ChatGPT Atlas.app/Contents/*",
         "/Applications/Codex.app/Contents/*",
-        "/Users/*/Applications/ChatGPT.app/Contents/*",
-        "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
         "/Users/*/Applications/Codex.app/Contents/*",
     ],
     "linux": [
         "/usr/bin/cursor*",
-        "/opt/chatgpt/*",
-        "/usr/bin/chatgpt*",
-        "/opt/chatgpt-atlas/*",
-        "/usr/bin/chatgpt-atlas*",
-        "/usr/bin/chatgptatlas*",
         "/opt/codex/*",
         "/usr/bin/codex",
     ],
@@ -271,8 +358,6 @@ PROCESS_PATHS_BY_PLATFORM = {
 
 PROXY_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [
-        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe",
-        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe",
         r"C:\Program Files\Google\Antigravity\*",
         r"C:\Program Files\Google\Antigravity*\*",
         r"C:\Users\*\AppData\Local\Programs\Antigravity\*",
@@ -280,8 +365,6 @@ PROXY_PROCESS_PATHS_BY_PLATFORM = {
     "macos": [
         "/Applications/Antigravity.app/Contents/*",
         "/Users/*/Applications/Antigravity.app/Contents/*",
-        "/Applications/Microsoft Edge.app/Contents/*",
-        "/Users/*/Applications/Microsoft Edge.app/Contents/*",
     ],
     "linux": [
         "/opt/Antigravity/*",
@@ -824,11 +907,15 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 """
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
-# These process exceptions intentionally run before OpenAI/ChatGPT domain
-# ChatGPT-group rules. Safari is kept DIRECT even when it opens official
-# OpenAI-family destinations; use Microsoft Edge for browser-wide PROXY
-# behavior on macOS.
+# Reserved for rare process exceptions that must stay DIRECT even before
+# OpenAI/ChatGPT domain and browser fingerprint ChatGPT-group rules.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
+"""
+    chatgpt_process_help = """# === BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
+# Major browsers and ChatGPT desktop apps are forced through the ChatGPT
+# group so HTTP + WebRTC/STUN share the same QQPW residential exit IP.
+# This is what keeps global browser fingerprints aligned with ChatGPT.
+# === END BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
@@ -839,20 +926,19 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
     process_help = """# === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # This editable block contains DIRECT process protections.
 # This profile is for users in mainland China: private, China, Apple China,
-# Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
-# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
-# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
-# PROXY.
+# Microsoft China, Google China, QQ/WeChat/Cursor, WPS Office /
+# cloud sync / update, and subscription update traffic stay DIRECT;
+# non-mainland fallback traffic uses PROXY. Browsers and ChatGPT desktop
+# apps are routed by the ChatGPT process rules above, not here.
 # To stop protecting one DIRECT process, comment out its line. Keep these
 # process rules explicit and predictable.
 """
     direct_end_help = """# === END USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # === USER-EDITABLE PROCESS PROXY OVERRIDES ===
-# These narrow PROXY overrides target Simprint's Chrome profile browser plus
-# selected non-OpenAI developer desktop app install paths: Antigravity.
-# OpenAI-family desktop app paths are DIRECT fallbacks; official OpenAI domains
-# are proxied by destination rules above. These overrides deliberately do not
-# target shared runtimes such as msedgewebview2.exe, node, or python.
+# These narrow PROXY overrides target selected non-browser developer desktop
+# app install paths: Antigravity. Browser fingerprint traffic uses ChatGPT
+# process rules above. These overrides deliberately do not target shared
+# runtimes such as msedgewebview2.exe, node, or python.
 # Comment individual lines out to route that app by destination rules only.
 """
     proxy_end_help = """# === END USER-EDITABLE PROCESS PROXY OVERRIDES ===
@@ -865,29 +951,53 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 """
     yaml_text = yaml_text.replace("rules:\n", cursor_domain_help, 1)
     first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,ChatGPT"
-    first_pre_domain_process_rule = "- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT"
-    if first_pre_domain_process_rule in yaml_text:
-        yaml_text = yaml_text.replace(
-            first_pre_domain_process_rule,
-            pre_domain_process_help + first_pre_domain_process_rule,
-            1,
-        )
     if first_openai_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
+    first_chatgpt_process_rule = "- PROCESS-NAME,chrome.exe,ChatGPT"
+    if first_chatgpt_process_rule in yaml_text:
+        yaml_text = yaml_text.replace(
+            first_chatgpt_process_rule,
+            chatgpt_process_help + first_chatgpt_process_rule,
+            1,
+        )
+    else:
+        first_chatgpt_process_rule = "- PROCESS-NAME,Google Chrome,ChatGPT"
+        if first_chatgpt_process_rule in yaml_text:
+            yaml_text = yaml_text.replace(
+                first_chatgpt_process_rule,
+                chatgpt_process_help + first_chatgpt_process_rule,
+                1,
+            )
+        else:
+            first_chatgpt_process_rule = "- PROCESS-NAME,google-chrome,ChatGPT"
+            if first_chatgpt_process_rule in yaml_text:
+                yaml_text = yaml_text.replace(
+                    first_chatgpt_process_rule,
+                    chatgpt_process_help + first_chatgpt_process_rule,
+                    1,
+                )
     first_wps_domain_rule = "- DOMAIN-KEYWORD,kingsoft,DIRECT"
     if first_wps_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_wps_domain_rule, wps_domain_help + first_wps_domain_rule, 1)
-    first_process_rule = "- PROCESS-NAME,"
-    if first_process_rule in yaml_text:
-        yaml_text = yaml_text.replace(first_process_rule, process_help + first_process_rule, 1)
-    first_proxy_rule = r"- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,PROXY"
+    first_direct_process_rule = "- PROCESS-NAME,ssh.exe,DIRECT"
+    if first_direct_process_rule in yaml_text:
+        yaml_text = yaml_text.replace(first_direct_process_rule, process_help + first_direct_process_rule, 1)
+    else:
+        first_direct_process_rule = "- PROCESS-NAME,ssh,DIRECT"
+        if first_direct_process_rule in yaml_text:
+            yaml_text = yaml_text.replace(first_direct_process_rule, process_help + first_direct_process_rule, 1)
+    first_proxy_rule = r"- PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity\*,PROXY"
     if first_proxy_rule in yaml_text:
         yaml_text = yaml_text.replace(first_proxy_rule, direct_end_help + first_proxy_rule, 1)
     else:
-        first_domain_rule = "- DOMAIN,"
-        if first_domain_rule in yaml_text:
-            yaml_text = yaml_text.replace(first_domain_rule, direct_end_help + no_proxy_help + first_domain_rule, 1)
-            return yaml_text
+        first_proxy_rule = "- PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY"
+        if first_proxy_rule in yaml_text:
+            yaml_text = yaml_text.replace(first_proxy_rule, direct_end_help + first_proxy_rule, 1)
+        else:
+            first_domain_rule = "- DOMAIN,"
+            if first_domain_rule in yaml_text:
+                yaml_text = yaml_text.replace(first_domain_rule, direct_end_help + no_proxy_help + first_domain_rule, 1)
+                return yaml_text
 
     proxy_rule_index = yaml_text.find(first_proxy_rule)
     first_domain_rule_index = yaml_text.find("\n- DOMAIN,", proxy_rule_index if proxy_rule_index >= 0 else 0)
@@ -982,6 +1092,26 @@ def mihomo_pre_domain_direct_process_rules(platform: str) -> list[str]:
     for process_path in process_paths:
         rule_type = "PROCESS-PATH-WILDCARD" if "*" in process_path else "PROCESS-PATH"
         rule = f"{rule_type},{process_path},DIRECT"
+        if rule not in seen:
+            rules.append(rule)
+            seen.add(rule)
+    return rules
+
+
+def mihomo_chatgpt_process_rules(platform: str) -> list[str]:
+    process_names = mihomo_process_values(CHATGPT_PROCESS_NAMES_BY_PLATFORM, platform)
+    process_paths = mihomo_process_values(CHATGPT_PROCESS_PATHS_BY_PLATFORM, platform)
+
+    rules: list[str] = []
+    seen: set[str] = set()
+    for process_name in process_names:
+        rule = f"PROCESS-NAME,{process_name},ChatGPT"
+        if rule not in seen:
+            rules.append(rule)
+            seen.add(rule)
+    for process_path in process_paths:
+        rule_type = "PROCESS-PATH-WILDCARD" if "*" in process_path else "PROCESS-PATH"
+        rule = f"{rule_type},{process_path},ChatGPT"
         if rule not in seen:
             rules.append(rule)
             seen.add(rule)
@@ -1129,6 +1259,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_proxy_node_direct_rules(repo_root),
             *mihomo_pre_domain_direct_process_rules(platform),
             *mihomo_openai_domain_proxy_rules(),
+            *mihomo_chatgpt_process_rules(platform),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
@@ -2161,6 +2292,8 @@ def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
     for platform in ("windows", "macos", "linux"):
         direct_names = "\n".join(f"- `{name}`" for name in DIRECT_PROCESS_NAMES_BY_PLATFORM[platform])
         direct_paths = "\n".join(f"- `{path}`" for path in DIRECT_PROCESS_PATHS_BY_PLATFORM[platform])
+        chatgpt_names = "\n".join(f"- `{name}`" for name in CHATGPT_PROCESS_NAMES_BY_PLATFORM[platform])
+        chatgpt_paths = "\n".join(f"- `{path}`" for path in CHATGPT_PROCESS_PATHS_BY_PLATFORM[platform])
         proxy_paths = "\n".join(f"- `{path}`" for path in PROXY_PROCESS_PATHS_BY_PLATFORM[platform])
         if not proxy_paths:
             proxy_paths = "- none by default"
@@ -2168,6 +2301,14 @@ def render_mihomo_process_routing_notes(repo_root: Path = REPO_ROOT) -> str:
         observed_paths = "\n".join(f"- `{path}`" for path in PROCESS_PATHS_BY_PLATFORM[platform])
         process_sections.append(
             f"""## {platform}
+
+### ChatGPT process names (browser fingerprint)
+
+{chatgpt_names}
+
+### ChatGPT process paths (browser fingerprint)
+
+{chatgpt_paths}
 
 ### DIRECT process names
 
@@ -2206,15 +2347,13 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
+- Browser and WebView fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint Chrome profile / ChatGPT desktop) is process-routed to the `ChatGPT` group so HTTP and WebRTC/STUN share the QQPW residential exit.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
-- General traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
-- OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
-- On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.
-- Antigravity, macOS Microsoft Edge, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.
+- General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
+- Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.
+- Antigravity install paths remain process-level `PROXY` overrides (developer tooling, not browser fingerprint).
 - `codexsdk`, `antigravitysdk`, and `cursorsdk` are SDK/library usage patterns, not stable standalone processes. Generic host processes such as `node` and `python` are not process-proxied by default; destination rules decide whether traffic is direct or proxied.
 - `mihomo-universal.yaml` merges the Windows, macOS, and Linux process rules into one file. Rules for executables or paths that do not exist on the current OS are expected to miss, not to run or launch anything.
-- Antigravity, ChatGPT, ChatGPT Atlas, Codex, Simprint, and stable Microsoft Edge can spawn helper, renderer, GPU, plugin, update, and CLI processes. The default profile uses narrow app install path rules only where process identity is the right control; OpenAI-family apps remain destination-rule based with DIRECT app fallbacks.
 - Cursor domain rules are the highest-priority DIRECT rules and are evaluated before process rules, so Cursor destinations stay direct no matter which app opens them. The first rule is fuzzy `DOMAIN-KEYWORD,cursor,DIRECT`, followed by explicit suffixes: `cursor.sh`, `cursor.com`, `cursorapi.com`, `cursor-cdn.com`, `anysphere.co`, and `anysphere.inc`.
 - Cursor is also protected by DIRECT process rules in this profile.
 - WPS / Kingsoft domain rules are evaluated after Cursor and before process rules. The first rule is `DOMAIN-KEYWORD,kingsoft,DIRECT`, followed by suffixes: {", ".join(f"`{domain}`" for domain in WPS_DIRECT_DOMAIN_SUFFIXES)}.
@@ -2238,7 +2377,7 @@ Generated for the GG proxy subscription service.
 
 ## Direct process protections
 
-Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Edge Beta, Cursor, WebView2, Safari, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. The final fallback is `MATCH,PROXY`, so non-mainland destinations are proxied for mainland China users.
+Private and mainland China direct guardrails are evaluated before proxy rules. That is intentional for TUN rule mode: domestic CDN traffic, local China apps, Cursor, WPS, and generic runtimes should stay `DIRECT` when they hit China/private rule providers. Browsers are process-routed to `ChatGPT`. The final fallback is `MATCH,PROXY`, so non-mainland non-browser destinations are proxied for mainland China users.
 
 {process_text}
 ## Operational notes

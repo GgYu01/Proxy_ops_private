@@ -302,14 +302,6 @@ rules:
 - IP-CIDR,38.65.93.39/32,DIRECT,no-resolve
 - IP-CIDR,38.65.93.94/32,DIRECT,no-resolve
 - IP-CIDR,67.215.238.140/32,DIRECT,no-resolve
-# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
-# These process exceptions intentionally run before OpenAI/ChatGPT domain
-# ChatGPT-group rules. Safari is kept DIRECT even when it opens official
-# OpenAI-family destinations; use Microsoft Edge for browser-wide PROXY
-# behavior on macOS.
-# === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
-- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT
-- PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
 # === OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 # Only official OpenAI-family destination domains are forced through the
 # ChatGPT group (default: QQPW residential VLESS Reality). Hy2 is optional.
@@ -324,6 +316,97 @@ rules:
 - DOMAIN-SUFFIX,auth.openai.com,ChatGPT
 - DOMAIN-SUFFIX,auth0.openai.com,ChatGPT
 - DOMAIN-SUFFIX,cdn.openaimerge.com,ChatGPT
+# === BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
+# Major browsers and ChatGPT desktop apps are forced through the ChatGPT
+# group so HTTP + WebRTC/STUN share the same QQPW residential exit IP.
+# This is what keeps global browser fingerprints aligned with ChatGPT.
+# === END BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
+- PROCESS-NAME,chrome.exe,ChatGPT
+- PROCESS-NAME,msedge.exe,ChatGPT
+- PROCESS-NAME,firefox.exe,ChatGPT
+- PROCESS-NAME,brave.exe,ChatGPT
+- PROCESS-NAME,opera.exe,ChatGPT
+- PROCESS-NAME,vivaldi.exe,ChatGPT
+- PROCESS-NAME,chromium.exe,ChatGPT
+- PROCESS-NAME,ChatGPT.exe,ChatGPT
+- PROCESS-NAME,ChatGPT Atlas.exe,ChatGPT
+- PROCESS-NAME,ChatGPTAtlas.exe,ChatGPT
+- PROCESS-NAME,Google Chrome,ChatGPT
+- PROCESS-NAME,Google Chrome Helper,ChatGPT
+- PROCESS-NAME,Chromium,ChatGPT
+- PROCESS-NAME,Microsoft Edge,ChatGPT
+- PROCESS-NAME,Microsoft Edge Helper,ChatGPT
+- PROCESS-NAME,Firefox,ChatGPT
+- PROCESS-NAME,Brave Browser,ChatGPT
+- PROCESS-NAME,Opera,ChatGPT
+- PROCESS-NAME,Vivaldi,ChatGPT
+- PROCESS-NAME,Safari,ChatGPT
+- PROCESS-NAME,ChatGPT,ChatGPT
+- PROCESS-NAME,ChatGPT Helper,ChatGPT
+- PROCESS-NAME,ChatGPT Atlas,ChatGPT
+- PROCESS-NAME,ChatGPT Atlas Helper,ChatGPT
+- PROCESS-NAME,ChatGPTAtlas,ChatGPT
+- PROCESS-NAME,ChatGPTAtlas Helper,ChatGPT
+- PROCESS-NAME,google-chrome,ChatGPT
+- PROCESS-NAME,chrome,ChatGPT
+- PROCESS-NAME,chromium,ChatGPT
+- PROCESS-NAME,chromium-browser,ChatGPT
+- PROCESS-NAME,microsoft-edge,ChatGPT
+- PROCESS-NAME,msedge,ChatGPT
+- PROCESS-NAME,firefox,ChatGPT
+- PROCESS-NAME,brave,ChatGPT
+- PROCESS-NAME,brave-browser,ChatGPT
+- PROCESS-NAME,opera,ChatGPT
+- PROCESS-NAME,vivaldi,ChatGPT
+- PROCESS-NAME,chatgpt,ChatGPT
+- PROCESS-NAME,chatgpt-atlas,ChatGPT
+- PROCESS-NAME,chatgptatlas,ChatGPT
+- PROCESS-PATH,C:\Program Files\Google\Chrome\Application\chrome.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files (x86)\Google\Chrome\Application\chrome.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Google\Chrome\Application\chrome.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files\Microsoft\Edge\Application\msedge.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Microsoft\Edge\Application\msedge.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files\Mozilla Firefox\firefox.exe,ChatGPT
+- PROCESS-PATH,C:\Program Files (x86)\Mozilla Firefox\firefox.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Google Chrome.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Chromium.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Microsoft Edge.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Firefox.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Brave Browser.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Opera.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Vivaldi.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Google Chrome.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/Microsoft Edge.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Applications/ChatGPT Atlas.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT Atlas.app/Contents/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/opt/google/chrome/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/google-chrome*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/chromium*,ChatGPT
+- PROCESS-PATH-WILDCARD,/opt/microsoft/msedge/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/microsoft-edge*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/firefox*,ChatGPT
+- PROCESS-PATH-WILDCARD,/opt/brave.com/brave/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/brave*,ChatGPT
+- PROCESS-PATH-WILDCARD,/opt/chatgpt/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt*,ChatGPT
+- PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,ChatGPT
+- PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,ChatGPT
 # === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the
@@ -343,10 +426,10 @@ rules:
 # === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # This editable block contains DIRECT process protections.
 # This profile is for users in mainland China: private, China, Apple China,
-# Microsoft China, Google China, QQ/WeChat/Cursor/Edge Beta, WPS Office /
-# cloud sync / update, OpenAI-family desktop app non-OpenAI destinations, and
-# subscription update traffic stay DIRECT; non-mainland fallback traffic uses
-# PROXY.
+# Microsoft China, Google China, QQ/WeChat/Cursor, WPS Office /
+# cloud sync / update, and subscription update traffic stay DIRECT;
+# non-mainland fallback traffic uses PROXY. Browsers and ChatGPT desktop
+# apps are routed by the ChatGPT process rules above, not here.
 # To stop protecting one DIRECT process, comment out its line. Keep these
 # process rules explicit and predictable.
 - PROCESS-NAME,ssh.exe,DIRECT
@@ -388,49 +471,28 @@ rules:
 - PROCESS-NAME,wechat,DIRECT
 - PROCESS-NAME,weixin,DIRECT
 - PROCESS-NAME,wxwork,DIRECT
-- PROCESS-PATH,C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
-- PROCESS-PATH,C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Cursor\*,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Kingsoft\WPS Office\*,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\OpenAI\Codex\bin\*\codex.exe,DIRECT
 - PROCESS-PATH-WILDCARD,C:\Program Files\WindowsApps\OpenAI.Codex_*\app\*,DIRECT
-- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,DIRECT
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,DIRECT
-- PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,DIRECT
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*,DIRECT
 - PROCESS-PATH-WILDCARD,/Applications/Cursor.app/Contents/*,DIRECT
-- PROCESS-PATH-WILDCARD,/Applications/ChatGPT.app/Contents/*,DIRECT
-- PROCESS-PATH-WILDCARD,/Applications/ChatGPT Atlas.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/Applications/Codex.app/Contents/*,DIRECT
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT.app/Contents/*,DIRECT
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/ChatGPT Atlas.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/Users/*/Applications/Codex.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/usr/bin/cursor*,DIRECT
-- PROCESS-PATH-WILDCARD,/opt/chatgpt/*,DIRECT
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt*,DIRECT
-- PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,DIRECT
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,DIRECT
-- PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,DIRECT
 - PROCESS-PATH-WILDCARD,/opt/codex/*,DIRECT
 - PROCESS-PATH,/usr/bin/codex,DIRECT
 # === END USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # === USER-EDITABLE PROCESS PROXY OVERRIDES ===
-# These narrow PROXY overrides target Simprint's Chrome profile browser plus
-# selected non-OpenAI developer desktop app install paths: Antigravity.
-# OpenAI-family desktop app paths are DIRECT fallbacks; official OpenAI domains
-# are proxied by destination rules above. These overrides deliberately do not
-# target shared runtimes such as msedgewebview2.exe, node, or python.
+# These narrow PROXY overrides target selected non-browser developer desktop
+# app install paths: Antigravity. Browser fingerprint traffic uses ChatGPT
+# process rules above. These overrides deliberately do not target shared
+# runtimes such as msedgewebview2.exe, node, or python.
 # Comment individual lines out to route that app by destination rules only.
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,PROXY
-- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe,PROXY
 - PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity\*,PROXY
 - PROCESS-PATH-WILDCARD,C:\Program Files\Google\Antigravity*\*,PROXY
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\Antigravity\*,PROXY
 - PROCESS-PATH-WILDCARD,/Applications/Antigravity.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/Users/*/Applications/Antigravity.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Applications/Microsoft Edge.app/Contents/*,PROXY
-- PROCESS-PATH-WILDCARD,/Users/*/Applications/Microsoft Edge.app/Contents/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
