@@ -97,6 +97,10 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe`
 - `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe`
 - `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe`
+- `C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe`
+- `C:\Users\*\AppData\Local\Simprint\*\msedgewebview2.exe`
+- `C:\Users\*\AppData\Local\Simprint\*\*\msedgewebview2.exe`
+- `C:\Users\*\AppData\Local\Simprint\*\*\*\msedgewebview2.exe`
 - `C:\Program Files\OpenAI\ChatGPT\*`
 - `C:\Users\*\AppData\Local\Programs\ChatGPT\*`
 - `C:\Program Files\OpenAI\ChatGPT Atlas\*`

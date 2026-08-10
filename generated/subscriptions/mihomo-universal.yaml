@@ -375,6 +375,10 @@ rules:
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe,ChatGPT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,ChatGPT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\*\msedgewebview2.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\*\*\msedgewebview2.exe,ChatGPT
+- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\*\*\*\msedgewebview2.exe,ChatGPT
 - PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT\*,ChatGPT
 - PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Programs\ChatGPT\*,ChatGPT
 - PROCESS-PATH-WILDCARD,C:\Program Files\OpenAI\ChatGPT Atlas\*,ChatGPT
