@@ -916,9 +916,9 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 """
     chatgpt_process_help = """# === BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
-# Major browsers and ChatGPT desktop apps are forced through the ChatGPT
-# group so HTTP + WebRTC/STUN share the same QQPW residential exit IP.
-# This is what keeps global browser fingerprints aligned with ChatGPT.
+# Major browsers and ChatGPT desktop apps hit ChatGPT only after CN/domestic
+# DIRECT rules. goofish/qwen/etc stay DIRECT; remaining browser traffic
+# (including WebRTC/STUN) shares the QQPW residential exit.
 # === END BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
@@ -1263,10 +1263,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_proxy_node_direct_rules(repo_root),
             *mihomo_pre_domain_direct_process_rules(platform),
             *mihomo_openai_domain_proxy_rules(),
-            *mihomo_chatgpt_process_rules(platform),
             *mihomo_wps_domain_direct_rules(),
-            *mihomo_direct_process_rules(platform),
-            *mihomo_proxy_process_rules(platform),
             *mihomo_domestic_platform_direct_rules(),
             *mihomo_mirror_direct_rules(),
             "RULE-SET,privateip,DIRECT,no-resolve",
@@ -1276,6 +1273,11 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             "RULE-SET,google-cn,DIRECT",
             "RULE-SET,cn,DIRECT",
             "RULE-SET,cnip,DIRECT,no-resolve",
+            # Browsers hit ChatGPT only after CN/direct destinations, so
+            # goofish/qwen/etc stay DIRECT while WebRTC/STUN still share QQPW.
+            *mihomo_chatgpt_process_rules(platform),
+            *mihomo_direct_process_rules(platform),
+            *mihomo_proxy_process_rules(platform),
             "RULE-SET,telegramip,PROXY,no-resolve",
             "RULE-SET,proxy,PROXY",
             "RULE-SET,gfw,PROXY",
@@ -2351,7 +2353,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser and WebView fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint Chrome profile / ChatGPT desktop) is process-routed to the `ChatGPT` group so HTTP and WebRTC/STUN share the QQPW residential exit.
+- Browser fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint / ChatGPT desktop) is process-routed to the `ChatGPT` group **after** CN/domestic DIRECT rules, so sites like goofish/qwen stay DIRECT while non-CN browser traffic (including WebRTC/STUN) still shares the QQPW residential exit.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.

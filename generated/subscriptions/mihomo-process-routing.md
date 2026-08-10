@@ -13,7 +13,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser and WebView fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint Chrome profile / ChatGPT desktop) is process-routed to the `ChatGPT` group so HTTP and WebRTC/STUN share the QQPW residential exit.
+- Browser fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint / ChatGPT desktop) is process-routed to the `ChatGPT` group **after** CN/domestic DIRECT rules, so sites like goofish/qwen stay DIRECT while non-CN browser traffic (including WebRTC/STUN) still shares the QQPW residential exit.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.

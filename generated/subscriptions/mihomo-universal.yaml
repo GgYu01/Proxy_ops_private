@@ -316,10 +316,47 @@ rules:
 - DOMAIN-SUFFIX,auth.openai.com,ChatGPT
 - DOMAIN-SUFFIX,auth0.openai.com,ChatGPT
 - DOMAIN-SUFFIX,cdn.openaimerge.com,ChatGPT
+# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
+# WPS Office and Kingsoft domains are matched before process rules so WPS
+# embedded WebView or helper subprocess traffic stays DIRECT even when the
+# process name is shared with other apps.
+# === END WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
+- DOMAIN-KEYWORD,kingsoft,DIRECT
+- DOMAIN-SUFFIX,kingsoft.com,DIRECT
+- DOMAIN-SUFFIX,kingsoft-office-service.com,DIRECT
+- DOMAIN-SUFFIX,wps.cn,DIRECT
+- DOMAIN-SUFFIX,wpscdn.cn,DIRECT
+- DOMAIN-SUFFIX,wpscdn.com,DIRECT
+- DOMAIN-SUFFIX,kdocs.cn,DIRECT
+- DOMAIN-SUFFIX,kdocs.com,DIRECT
+- DOMAIN-SUFFIX,ksosoft.com,DIRECT
+- DOMAIN-SUFFIX,ksord.com,DIRECT
+- DOMAIN-SUFFIX,wpsplus.com,DIRECT
+- DOMAIN-SUFFIX,gglohh.top,DIRECT
+- DOMAIN-SUFFIX,ringzle.com,DIRECT
+- DOMAIN-SUFFIX,mirrors.tuna.tsinghua.edu.cn,DIRECT
+- DOMAIN-SUFFIX,deb.debian.org,DIRECT
+- DOMAIN-SUFFIX,security.debian.org,DIRECT
+- DOMAIN-SUFFIX,ftp.debian.org,DIRECT
+- DOMAIN-SUFFIX,mirrors.aliyun.com,DIRECT
+- DOMAIN-SUFFIX,mirrors.ustc.edu.cn,DIRECT
+- DOMAIN-SUFFIX,mirrors.huaweicloud.com,DIRECT
+- DOMAIN-SUFFIX,mirrors.cloud.tencent.com,DIRECT
+- DOMAIN-SUFFIX,mirror.nju.edu.cn,DIRECT
+- DOMAIN-SUFFIX,mirrors.163.com,DIRECT
+- DOMAIN-SUFFIX,docker.m.daocloud.io,DIRECT
+- DOMAIN-SUFFIX,daocloud.io,DIRECT
+- RULE-SET,privateip,DIRECT,no-resolve
+- RULE-SET,ads,REJECT
+- RULE-SET,apple-cn,DIRECT
+- RULE-SET,microsoft-cn,DIRECT
+- RULE-SET,google-cn,DIRECT
+- RULE-SET,cn,DIRECT
+- RULE-SET,cnip,DIRECT,no-resolve
 # === BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
-# Major browsers and ChatGPT desktop apps are forced through the ChatGPT
-# group so HTTP + WebRTC/STUN share the same QQPW residential exit IP.
-# This is what keeps global browser fingerprints aligned with ChatGPT.
+# Major browsers and ChatGPT desktop apps hit ChatGPT only after CN/domestic
+# DIRECT rules. goofish/qwen/etc stay DIRECT; remaining browser traffic
+# (including WebRTC/STUN) shares the QQPW residential exit.
 # === END BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
 - PROCESS-NAME,chrome.exe,ChatGPT
 - PROCESS-NAME,msedge.exe,ChatGPT
@@ -411,22 +448,6 @@ rules:
 - PROCESS-PATH-WILDCARD,/opt/chatgpt-atlas/*,ChatGPT
 - PROCESS-PATH-WILDCARD,/usr/bin/chatgpt-atlas*,ChatGPT
 - PROCESS-PATH-WILDCARD,/usr/bin/chatgptatlas*,ChatGPT
-# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
-# WPS Office and Kingsoft domains are matched before process rules so WPS
-# embedded WebView or helper subprocess traffic stays DIRECT even when the
-# process name is shared with other apps.
-# === END WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
-- DOMAIN-KEYWORD,kingsoft,DIRECT
-- DOMAIN-SUFFIX,kingsoft.com,DIRECT
-- DOMAIN-SUFFIX,kingsoft-office-service.com,DIRECT
-- DOMAIN-SUFFIX,wps.cn,DIRECT
-- DOMAIN-SUFFIX,wpscdn.cn,DIRECT
-- DOMAIN-SUFFIX,wpscdn.com,DIRECT
-- DOMAIN-SUFFIX,kdocs.cn,DIRECT
-- DOMAIN-SUFFIX,kdocs.com,DIRECT
-- DOMAIN-SUFFIX,ksosoft.com,DIRECT
-- DOMAIN-SUFFIX,ksord.com,DIRECT
-- DOMAIN-SUFFIX,wpsplus.com,DIRECT
 # === USER-EDITABLE PROCESS DIRECT PROTECTIONS ===
 # This editable block contains DIRECT process protections.
 # This profile is for users in mainland China: private, China, Apple China,
@@ -500,27 +521,6 @@ rules:
 - PROCESS-PATH-WILDCARD,/opt/Antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/opt/antigravity/*,PROXY
 - PROCESS-PATH-WILDCARD,/usr/bin/antigravity*,PROXY
-- DOMAIN-SUFFIX,gglohh.top,DIRECT
-- DOMAIN-SUFFIX,ringzle.com,DIRECT
-- DOMAIN-SUFFIX,mirrors.tuna.tsinghua.edu.cn,DIRECT
-- DOMAIN-SUFFIX,deb.debian.org,DIRECT
-- DOMAIN-SUFFIX,security.debian.org,DIRECT
-- DOMAIN-SUFFIX,ftp.debian.org,DIRECT
-- DOMAIN-SUFFIX,mirrors.aliyun.com,DIRECT
-- DOMAIN-SUFFIX,mirrors.ustc.edu.cn,DIRECT
-- DOMAIN-SUFFIX,mirrors.huaweicloud.com,DIRECT
-- DOMAIN-SUFFIX,mirrors.cloud.tencent.com,DIRECT
-- DOMAIN-SUFFIX,mirror.nju.edu.cn,DIRECT
-- DOMAIN-SUFFIX,mirrors.163.com,DIRECT
-- DOMAIN-SUFFIX,docker.m.daocloud.io,DIRECT
-- DOMAIN-SUFFIX,daocloud.io,DIRECT
-- RULE-SET,privateip,DIRECT,no-resolve
-- RULE-SET,ads,REJECT
-- RULE-SET,apple-cn,DIRECT
-- RULE-SET,microsoft-cn,DIRECT
-- RULE-SET,google-cn,DIRECT
-- RULE-SET,cn,DIRECT
-- RULE-SET,cnip,DIRECT,no-resolve
 - RULE-SET,telegramip,PROXY,no-resolve
 - RULE-SET,proxy,PROXY
 - RULE-SET,gfw,PROXY
