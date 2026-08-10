@@ -106,32 +106,17 @@ PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "linux": [],
 }
 
-# Browsers (and browser-like fingerprint surfaces) go through ChatGPT so
-# HTTP + WebRTC/STUN share the same QQPW residential exit.
+# Only ChatGPT-family / fingerprint tooling processes go to ChatGPT.
+# Do NOT bind whole browsers (msedge/chrome) here — that burns residential
+# traffic on unrelated downloads (FPGA, Bing, etc.). OpenAI destinations use
+# domain rules; other browser traffic follows CN DIRECT / PROXY / MATCH.
 CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
     "windows": [
-        "chrome.exe",
-        "msedge.exe",
-        "firefox.exe",
-        "brave.exe",
-        "opera.exe",
-        "vivaldi.exe",
-        "chromium.exe",
         "ChatGPT.exe",
         "ChatGPT Atlas.exe",
         "ChatGPTAtlas.exe",
     ],
     "macos": [
-        "Google Chrome",
-        "Google Chrome Helper",
-        "Chromium",
-        "Microsoft Edge",
-        "Microsoft Edge Helper",
-        "Firefox",
-        "Brave Browser",
-        "Opera",
-        "Vivaldi",
-        "Safari",
         "ChatGPT",
         "ChatGPT Helper",
         "ChatGPT Atlas",
@@ -140,17 +125,6 @@ CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
         "ChatGPTAtlas Helper",
     ],
     "linux": [
-        "google-chrome",
-        "chrome",
-        "chromium",
-        "chromium-browser",
-        "microsoft-edge",
-        "msedge",
-        "firefox",
-        "brave",
-        "brave-browser",
-        "opera",
-        "vivaldi",
         "chatgpt",
         "chatgpt-atlas",
         "chatgptatlas",
@@ -159,18 +133,6 @@ CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
 
 CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        r"C:\Users\*\AppData\Local\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Users\*\AppData\Local\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe",
-        r"C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe",
-        r"C:\Program Files\Mozilla Firefox\firefox.exe",
-        r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
-        r"C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe",
         r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe",
         r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe",
         r"C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe",
@@ -183,31 +145,12 @@ CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
         r"C:\Users\*\AppData\Local\Programs\ChatGPT Atlas\*",
     ],
     "macos": [
-        "/Applications/Google Chrome.app/Contents/*",
-        "/Applications/Chromium.app/Contents/*",
-        "/Applications/Microsoft Edge.app/Contents/*",
-        "/Applications/Firefox.app/Contents/*",
-        "/Applications/Brave Browser.app/Contents/*",
-        "/Applications/Opera.app/Contents/*",
-        "/Applications/Vivaldi.app/Contents/*",
-        "/Applications/Safari.app/Contents/*",
-        "/System/Applications/Safari.app/Contents/*",
-        "/Users/*/Applications/Google Chrome.app/Contents/*",
-        "/Users/*/Applications/Microsoft Edge.app/Contents/*",
         "/Applications/ChatGPT.app/Contents/*",
         "/Applications/ChatGPT Atlas.app/Contents/*",
         "/Users/*/Applications/ChatGPT.app/Contents/*",
         "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
     ],
     "linux": [
-        "/opt/google/chrome/*",
-        "/usr/bin/google-chrome*",
-        "/usr/bin/chromium*",
-        "/opt/microsoft/msedge/*",
-        "/usr/bin/microsoft-edge*",
-        "/usr/bin/firefox*",
-        "/opt/brave.com/brave/*",
-        "/usr/bin/brave*",
         "/opt/chatgpt/*",
         "/usr/bin/chatgpt*",
         "/opt/chatgpt-atlas/*",
@@ -915,11 +858,12 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # OpenAI/ChatGPT domain and browser fingerprint ChatGPT-group rules.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 """
-    chatgpt_process_help = """# === BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
-# Major browsers and ChatGPT desktop apps hit ChatGPT only after CN/domestic
-# DIRECT rules. goofish/qwen/etc stay DIRECT; remaining browser traffic
-# (including WebRTC/STUN) shares the QQPW residential exit.
-# === END BROWSER / FINGERPRINT ChatGPT PROCESS RULES ===
+    chatgpt_process_help = """# === ChatGPT APP / FINGERPRINT-TOOL PROCESS RULES ===
+# Only ChatGPT desktop and Simprint fingerprint tooling are process-routed
+# to ChatGPT. Whole browsers (Edge/Chrome) are NOT bound here — otherwise
+# unrelated downloads (FPGA, Bing, etc.) burn QQPW residential traffic.
+# OpenAI-family sites still use DOMAIN → ChatGPT rules above.
+# === END ChatGPT APP / FINGERPRINT-TOOL PROCESS RULES ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
@@ -957,7 +901,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
     first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,ChatGPT"
     if first_openai_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
-    first_chatgpt_process_rule = "- PROCESS-NAME,chrome.exe,ChatGPT"
+    first_chatgpt_process_rule = "- PROCESS-NAME,ChatGPT.exe,ChatGPT"
     if first_chatgpt_process_rule in yaml_text:
         yaml_text = yaml_text.replace(
             first_chatgpt_process_rule,
@@ -965,7 +909,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
             1,
         )
     else:
-        first_chatgpt_process_rule = "- PROCESS-NAME,Google Chrome,ChatGPT"
+        first_chatgpt_process_rule = "- PROCESS-NAME,ChatGPT,ChatGPT"
         if first_chatgpt_process_rule in yaml_text:
             yaml_text = yaml_text.replace(
                 first_chatgpt_process_rule,
@@ -973,13 +917,23 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
                 1,
             )
         else:
-            first_chatgpt_process_rule = "- PROCESS-NAME,google-chrome,ChatGPT"
+            first_chatgpt_process_rule = "- PROCESS-NAME,chatgpt,ChatGPT"
             if first_chatgpt_process_rule in yaml_text:
                 yaml_text = yaml_text.replace(
                     first_chatgpt_process_rule,
                     chatgpt_process_help + first_chatgpt_process_rule,
                     1,
                 )
+            else:
+                first_chatgpt_path_rule = (
+                    r"- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,ChatGPT"
+                )
+                if first_chatgpt_path_rule in yaml_text:
+                    yaml_text = yaml_text.replace(
+                        first_chatgpt_path_rule,
+                        chatgpt_process_help + first_chatgpt_path_rule,
+                        1,
+                    )
     first_wps_domain_rule = "- DOMAIN-KEYWORD,kingsoft,DIRECT"
     if first_wps_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_wps_domain_rule, wps_domain_help + first_wps_domain_rule, 1)
@@ -1273,8 +1227,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             "RULE-SET,google-cn,DIRECT",
             "RULE-SET,cn,DIRECT",
             "RULE-SET,cnip,DIRECT,no-resolve",
-            # Browsers hit ChatGPT only after CN/direct destinations, so
-            # goofish/qwen/etc stay DIRECT while WebRTC/STUN still share QQPW.
+            # ChatGPT desktop / Simprint only — not whole Edge/Chrome browsers.
             *mihomo_chatgpt_process_rules(platform),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
@@ -2353,7 +2306,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint / ChatGPT desktop) is process-routed to the `ChatGPT` group **after** CN/domestic DIRECT rules, so sites like goofish/qwen stay DIRECT while non-CN browser traffic (including WebRTC/STUN) still shares the QQPW residential exit.
+- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic. OpenAI-family sites still use DOMAIN → `ChatGPT`.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.

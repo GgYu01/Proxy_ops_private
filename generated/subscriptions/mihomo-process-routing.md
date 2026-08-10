@@ -13,7 +13,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- Browser fingerprint traffic (Chrome / Edge / Firefox / Brave / Safari / Simprint / ChatGPT desktop) is process-routed to the `ChatGPT` group **after** CN/domestic DIRECT rules, so sites like goofish/qwen stay DIRECT while non-CN browser traffic (including WebRTC/STUN) still shares the QQPW residential exit.
+- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic. OpenAI-family sites still use DOMAIN → `ChatGPT`.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.
@@ -70,31 +70,12 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### ChatGPT process names (browser fingerprint)
 
-- `chrome.exe`
-- `msedge.exe`
-- `firefox.exe`
-- `brave.exe`
-- `opera.exe`
-- `vivaldi.exe`
-- `chromium.exe`
 - `ChatGPT.exe`
 - `ChatGPT Atlas.exe`
 - `ChatGPTAtlas.exe`
 
 ### ChatGPT process paths (browser fingerprint)
 
-- `C:\Program Files\Google\Chrome\Application\chrome.exe`
-- `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
-- `C:\Users\*\AppData\Local\Google\Chrome\Application\chrome.exe`
-- `C:\Program Files\Microsoft\Edge\Application\msedge.exe`
-- `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`
-- `C:\Users\*\AppData\Local\Microsoft\Edge\Application\msedge.exe`
-- `C:\Program Files\Microsoft\Edge Beta\Application\msedge.exe`
-- `C:\Program Files (x86)\Microsoft\Edge Beta\Application\msedge.exe`
-- `C:\Users\*\AppData\Local\Microsoft\Edge Beta\Application\msedge.exe`
-- `C:\Program Files\Mozilla Firefox\firefox.exe`
-- `C:\Program Files (x86)\Mozilla Firefox\firefox.exe`
-- `C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe`
 - `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe`
 - `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe`
 - `C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe`
@@ -176,16 +157,6 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### ChatGPT process names (browser fingerprint)
 
-- `Google Chrome`
-- `Google Chrome Helper`
-- `Chromium`
-- `Microsoft Edge`
-- `Microsoft Edge Helper`
-- `Firefox`
-- `Brave Browser`
-- `Opera`
-- `Vivaldi`
-- `Safari`
 - `ChatGPT`
 - `ChatGPT Helper`
 - `ChatGPT Atlas`
@@ -195,17 +166,6 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### ChatGPT process paths (browser fingerprint)
 
-- `/Applications/Google Chrome.app/Contents/*`
-- `/Applications/Chromium.app/Contents/*`
-- `/Applications/Microsoft Edge.app/Contents/*`
-- `/Applications/Firefox.app/Contents/*`
-- `/Applications/Brave Browser.app/Contents/*`
-- `/Applications/Opera.app/Contents/*`
-- `/Applications/Vivaldi.app/Contents/*`
-- `/Applications/Safari.app/Contents/*`
-- `/System/Applications/Safari.app/Contents/*`
-- `/Users/*/Applications/Google Chrome.app/Contents/*`
-- `/Users/*/Applications/Microsoft Edge.app/Contents/*`
 - `/Applications/ChatGPT.app/Contents/*`
 - `/Applications/ChatGPT Atlas.app/Contents/*`
 - `/Users/*/Applications/ChatGPT.app/Contents/*`
@@ -268,31 +228,12 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 
 ### ChatGPT process names (browser fingerprint)
 
-- `google-chrome`
-- `chrome`
-- `chromium`
-- `chromium-browser`
-- `microsoft-edge`
-- `msedge`
-- `firefox`
-- `brave`
-- `brave-browser`
-- `opera`
-- `vivaldi`
 - `chatgpt`
 - `chatgpt-atlas`
 - `chatgptatlas`
 
 ### ChatGPT process paths (browser fingerprint)
 
-- `/opt/google/chrome/*`
-- `/usr/bin/google-chrome*`
-- `/usr/bin/chromium*`
-- `/opt/microsoft/msedge/*`
-- `/usr/bin/microsoft-edge*`
-- `/usr/bin/firefox*`
-- `/opt/brave.com/brave/*`
-- `/usr/bin/brave*`
 - `/opt/chatgpt/*`
 - `/usr/bin/chatgpt*`
 - `/opt/chatgpt-atlas/*`
