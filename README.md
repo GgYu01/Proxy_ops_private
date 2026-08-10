@@ -56,6 +56,15 @@ Use the egress check script when you need to prove which public IP a shared
 bash /workspaces/proxy_own/proxy_ops_private/scripts/check_infra_core_egress_ip.sh
 ```
 
+For vmrack1 / qqpw dual egress (public `38.65.93.39` vs WireGuard residential NAT):
+
+```bash
+bash scripts/sync_vmrack_qqpw.sh --dry-run --skip-apply --static-probe --skip-publish
+bash scripts/probe_dual_egress_ips.py --static-only
+# live apply + exit-IP assertions require real WG keys in secrets/nodes/vmrack1.env
+bash scripts/sync_vmrack_qqpw.sh
+```
+
 What it reports:
 
 - `matched_rule_observed_ip`: the public IP seen when the container accesses a

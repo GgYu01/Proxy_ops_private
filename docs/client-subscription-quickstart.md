@@ -39,10 +39,16 @@ controller 来切换节点和查看连接。
 
 - `GG-US-SEA-BGP-01`
   - `https://subs.sea.prod.gglohh.top/subscriptions/v2ray_node_us_sea_bgp_01.txt`
-- `GG-Vmrack1`
+- `GG-Vmrack1`（本机公网出口 `38.65.93.39`，仅 VLESS `:10003`）
   - `https://subs.sea.prod.gglohh.top/subscriptions/v2ray_node_vmrack1.txt`
+- `QQPW-Residential`（经 vmrack1 `wg0` 住宅 NAT，Hy2 `:10005` + VLESS `:10006`）
+  - `https://subs.sea.prod.gglohh.top/subscriptions/v2ray_node_qqpw.txt`
 - `GG-Dedirock`
   - `https://subs.sea.prod.gglohh.top/subscriptions/v2ray_node_dedirock.txt`
+
+`qqpw` 不是 `vmrack1` 同端口别名。双出口 sync 见平台
+`docs/runbooks/vmrack-qqpw-dual-egress-sync.md` 与 private
+`scripts/sync_vmrack_qqpw.sh`。
 
 完整列表见 landing 页：`https://subs.sea.prod.gglohh.top/`
 
@@ -100,3 +106,4 @@ Windows 本机路由验收见根仓 `scripts/windows/accept-mihomo-windows.ps1`�
 
 - [ADR-0020](../../docs/adr/ADR-0020-sea-bgp-temporary-subscription-host.md) - infra-core 退役与 SEA BGP 临时订阅宿主
 - [ADR-0021](../../docs/adr/ADR-0021-subscription-node-availability-pruning.md) - 可用性异常节点自动剔除
+- [ADR-0018](../../../docs/adr/ADR-0018-vmrack-qqpw-dual-egress-sync.md) - vmrack/qqpw 双出口与 sync 闭环

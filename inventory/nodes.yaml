@@ -51,11 +51,49 @@
       "provider": "VMRack",
       "deployment_topology": "standalone_vps",
       "runtime_service": "cliproxy-plus",
+      "wireguard": {
+        "interface": "wg0",
+        "address": "10.77.0.1/30",
+        "listen_port": 51820,
+        "table": "off",
+        "role": "server",
+        "peer_endpoint": null,
+        "peer_allowed_ips": "0.0.0.0/0",
+        "observed_peer_endpoint_note": "dynamic NAT client currently observed as 147.81.120.142:<ephemeral>"
+      },
+      "egress_profiles": {
+        "public": {
+          "expected_exit_ip": "38.65.93.39",
+          "protocols": {
+            "vless": {
+              "port_offset": 3
+            }
+          }
+        },
+        "wireguard_nat": {
+          "bind_address": "10.77.0.1",
+          "expected_exit_ip_not": "38.65.93.39",
+          "protocols": {
+            "hysteria2": {
+              "port_offset": 5,
+              "sni": "www.microsoft.com",
+              "insecure": true
+            },
+            "vless": {
+              "port_offset": 6
+            },
+            "socks": {
+              "port_offset": 7
+            }
+          }
+        }
+      },
       "hysteria2": {
         "enabled": true,
         "port_offset": 5,
         "sni": "www.microsoft.com",
         "insecure": true,
+        "egress_profile": "wireguard_nat",
         "egress_note": "WireGuard residential NAT via wg0"
       }
     },

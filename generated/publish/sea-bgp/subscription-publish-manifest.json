@@ -9,9 +9,9 @@
   },
   "generated_files": [
     {
-      "bytes": 18091,
+      "bytes": 18107,
       "path": "generated/subscriptions/index.html",
-      "sha256": "50d6168ee1872fdedfba23f52bd45640cb809eda209e456b801d36e5f171403e"
+      "sha256": "80f9b9862f019f39af577f29197b35ad19a72244841a010217d1c37fe63b0304"
     },
     {
       "bytes": 14674,
@@ -19,14 +19,14 @@
       "sha256": "1f336f1a37f6d0fa5017412d507066cba463254de8fff145fb1366104126babc"
     },
     {
-      "bytes": 11276,
+      "bytes": 11437,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "5b955c705c0d839e41424ec63f58d04a6b5baa0afb5dd1fb052e398293587a9c"
+      "sha256": "5a34c07417bf225ed956b8271618d457227b86325af5328b735ca9fc7c33e073"
     },
     {
-      "bytes": 16336,
+      "bytes": 16456,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "2d85918d5543b5d13010107f53916f9fdb68b6c76f9d72d87edafdcb1e1d6e49"
+      "sha256": "736ec1b52f189ae8f708923cd729df66a7060513c2f031d2e378c90c591a8f79"
     },
     {
       "bytes": 329,
@@ -39,9 +39,9 @@
       "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
     },
     {
-      "bytes": 404,
+      "bytes": 474,
       "path": "generated/subscriptions/v2ray_node_qqpw.txt",
-      "sha256": "333713c672a9daf2b93663089ed844d7da44cdbd563d59b0eafa9ba421954623"
+      "sha256": "269473349ec1dca2fe47dc987788a412f4d13715a591bd58ca47c97b8362801d"
     },
     {
       "bytes": 246,
@@ -49,14 +49,14 @@
       "sha256": "43c20d58a615c0d99136a90669b0c158deca5ee8ac099237338f8fb8ae842157"
     },
     {
-      "bytes": 788,
+      "bytes": 241,
       "path": "generated/subscriptions/v2ray_node_vmrack1.txt",
-      "sha256": "a0aee8c578f2a3c77578175a0b946145e4ce49a55f58d6b1b89aa85ed11af04b"
+      "sha256": "4d8d6bfa30ca7c42229e138d31fea4d58fb8bb62a85ddefddf660230ab7220b1"
     },
     {
-      "bytes": 1034,
+      "bytes": 961,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "ed6e8f3c2569eae381fc991899a069f63b755c271b6b827068f741f5e517bc99"
+      "sha256": "83d5974ef9f96c28ebc2d9bfb0f0de845c85322812b71a8c59a828111dca8ac2"
     }
   ],
   "publish_node": "us_sea_bgp_01",

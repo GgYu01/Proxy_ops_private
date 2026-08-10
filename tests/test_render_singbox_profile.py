@@ -126,7 +126,7 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertIn("IP-CIDR,67.215.238.140/32,DIRECT,no-resolve", mihomo)
         self.assertLess(
             mihomo.index("IP-CIDR,69.5.53.82/32,DIRECT,no-resolve"),
-            mihomo.index("DOMAIN-SUFFIX,openai.com,PROXY"),
+            mihomo.index("DOMAIN-SUFFIX,openai.com,ChatGPT"),
         )
         self.assertEqual(
             "https://subs.sea.prod.gglohh.top/subscriptions/singbox-client-profile.json",
@@ -197,7 +197,7 @@ class SingboxProfileRenderTests(unittest.TestCase):
             mihomo.index("RULE-SET,proxy,PROXY"),
         )
 
-    def test_mihomo_profile_includes_vmrack_and_qqpw_aliases(self) -> None:
+    def test_mihomo_profile_includes_vmrack_and_qqpw_distinct_ports(self) -> None:
         render_artifacts = load_module()
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -207,16 +207,58 @@ class SingboxProfileRenderTests(unittest.TestCase):
             mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
             v2ray = (repo_root / "generated" / "subscriptions" / "v2ray_nodes.txt").read_text(encoding="utf-8")
 
-        for name in (
-            "GG-Vmrack1",
-            "GG-Vmrack1-Hysteria2",
-            "QQPW-Residential-Reality",
-            "QQPW-Residential-Hysteria2",
-        ):
-            self.assertIn(f"name: {name}", mihomo)
+        self.assertIn("name: GG-Vmrack1", mihomo)
+        self.assertNotIn("name: GG-Vmrack1-Hysteria2", mihomo)
+        self.assertIn("name: QQPW-Residential-SOCKS5", mihomo)
+        self.assertIn("name: QQPW-Residential-Reality", mihomo)
+        self.assertIn("name: QQPW-Residential-Hysteria2", mihomo)
+        self.assertIn("name: ChatGPT", mihomo)
+        self.assertIn("name: PROXY", mihomo)
+        self.assertNotIn("name: Vmrack-Public", mihomo)
+        self.assertNotIn("name: QQPW-Residential\n", mihomo)
+        self.assertRegex(
+            mihomo,
+            r"name: GG-Vmrack1\r?\n\s+type: vless\r?\n\s+server: 38\.65\.93\.39\r?\n\s+port: 10003",
+        )
+        self.assertRegex(
+            mihomo,
+            r"name: QQPW-Residential-SOCKS5\r?\n\s+type: socks5\r?\n\s+server: 38\.65\.93\.39\r?\n\s+port: 10007",
+        )
+        self.assertRegex(
+            mihomo,
+            r"name: QQPW-Residential-Reality\r?\n\s+type: vless\r?\n\s+server: 38\.65\.93\.39\r?\n\s+port: 10006",
+        )
+        self.assertRegex(
+            mihomo,
+            r"name: QQPW-Residential-Hysteria2\r?\n\s+type: hysteria2\r?\n\s+server: 38\.65\.93\.39\r?\n\s+port: 10005",
+        )
+        # ChatGPT group lists QQPW SOCKS5 before other QQPW / general nodes.
+        chatgpt_block = re.search(
+            r"name: ChatGPT\r?\n\s+type: select\r?\n\s+proxies:\r?\n((?:\s+- .+\r?\n)+)",
+            mihomo,
+        )
+        self.assertIsNotNone(chatgpt_block)
+        chatgpt_proxies = chatgpt_block.group(1)
+        self.assertLess(
+            chatgpt_proxies.index("QQPW-Residential-SOCKS5"),
+            chatgpt_proxies.index("QQPW-Residential-Reality"),
+        )
+        self.assertLess(
+            chatgpt_proxies.index("QQPW-Residential-SOCKS5"),
+            chatgpt_proxies.index("GG-Vmrack1"),
+        )
+        self.assertIn("DOMAIN-SUFFIX,openai.com,ChatGPT", mihomo)
+        # Old alias bug: QQPW Reality must never share the public VLESS port.
+        self.assertNotRegex(
+            mihomo,
+            r"name: QQPW-Residential-Reality\r?\n(?:.*\r?\n){0,6}\s+port: 10003",
+        )
+        self.assertIn("QQPW-Residential-SOCKS5", v2ray)
         self.assertIn("QQPW-Residential-Reality", v2ray)
         self.assertIn("QQPW-Residential-Hysteria2", v2ray)
-
-
+        self.assertNotIn("GG-Vmrack1-Hysteria2", v2ray)
+        self.assertIn("@38.65.93.39:10007", v2ray)
+        self.assertIn("@38.65.93.39:10006", v2ray)
+        self.assertNotIn("@38.65.93.39:10003#QQPW", v2ray)
 if __name__ == "__main__":
     unittest.main()

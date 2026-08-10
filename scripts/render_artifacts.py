@@ -390,15 +390,87 @@ def node_public_host(node: dict) -> str:
     return str(node["host"])
 
 
-def vless_link(node: dict, *, alias: str | None = None) -> str:
-    host = node_public_host(node)
-    port = int(node["base_port"]) + 3
+def node_egress_profiles(node: dict) -> dict:
+    profiles = node.get("egress_profiles") or {}
+    return dict(profiles) if isinstance(profiles, dict) else {}
+
+
+def node_has_dual_egress(node: dict) -> bool:
+    profiles = node_egress_profiles(node)
+    return "public" in profiles and "wireguard_nat" in profiles
+
+
+def public_vless_port(node: dict) -> int:
+    profiles = node_egress_profiles(node)
+    public = profiles.get("public") or {}
+    protocols = public.get("protocols") or {}
+    vless = protocols.get("vless") or {}
+    offset = int(vless.get("port_offset", 3)) if isinstance(vless, dict) else 3
+    return int(node["base_port"]) + offset
+
+
+def wireguard_nat_profile(node: dict) -> dict:
+    return dict(node_egress_profiles(node).get("wireguard_nat") or {})
+
+
+def qqpw_vless_port(node: dict) -> int:
+    protocols = (wireguard_nat_profile(node).get("protocols") or {})
+    vless = protocols.get("vless") or {}
+    offset = int(vless.get("port_offset", 6)) if isinstance(vless, dict) else 6
+    return int(node["base_port"]) + offset
+
+
+def qqpw_vless_uuid(node: dict) -> str:
     secrets = node["secrets"]
+    return str(secrets.get("QQPW_VLESS_UUID") or secrets["VLESS_UUID"])
+
+
+def qqpw_socks_port(node: dict) -> int:
+    protocols = wireguard_nat_profile(node).get("protocols") or {}
+    socks = protocols.get("socks") or {}
+    offset = int(socks.get("port_offset", 7)) if isinstance(socks, dict) else 7
+    return int(node["base_port"]) + offset
+
+
+def socks5_link(node: dict, *, alias: str | None = None, port: int | None = None) -> str:
+    secrets = node["secrets"]
+    host = node_public_host(node)
+    listen_port = qqpw_socks_port(node) if port is None else int(port)
+    user = urllib.parse.quote(str(secrets.get("PROXY_USER") or "admin"), safe="")
+    password = urllib.parse.quote(str(secrets["PROXY_PASS"]), safe="")
+    alias_name = alias or "QQPW-Residential-SOCKS5"
+    return f"socks5://{user}:{password}@{host}:{listen_port}#{urllib.parse.quote(alias_name)}"
+
+
+def mihomo_proxy_socks5_for_qqpw(node: dict, *, alias: str | None = None) -> dict:
+    secrets = node["secrets"]
+    return {
+        "name": alias or "QQPW-Residential-SOCKS5",
+        "type": "socks5",
+        "server": node_public_host(node),
+        "port": qqpw_socks_port(node),
+        "username": str(secrets.get("PROXY_USER") or "admin"),
+        "password": secrets["PROXY_PASS"],
+        "udp": True,
+    }
+
+
+def vless_link(
+    node: dict,
+    *,
+    alias: str | None = None,
+    port: int | None = None,
+    uuid_value: str | None = None,
+) -> str:
+    host = node_public_host(node)
+    listen_port = public_vless_port(node) if port is None else int(port)
+    secrets = node["secrets"]
+    uuid = uuid_value or secrets["VLESS_UUID"]
     alias_name = alias or str(node["subscription_alias"])
     alias_encoded = urllib.parse.quote(alias_name)
     sni = first_server_name(node)
     return (
-        f"vless://{secrets['VLESS_UUID']}@{host}:{port}"
+        f"vless://{uuid}@{host}:{listen_port}"
         f"?security=reality&encryption=none"
         f"&pbk={secrets['REALITY_PUBLIC_KEY']}"
         f"&fp=chrome&type=tcp&flow=xtls-rprx-vision"
@@ -412,14 +484,43 @@ def node_hysteria2_enabled(node: dict) -> bool:
     return bool(hysteria2.get("enabled"))
 
 
+def hysteria2_egress_profile(node: dict) -> str:
+    hysteria2 = node.get("hysteria2") or {}
+    return str(hysteria2.get("egress_profile") or "public")
+
+
+def node_hysteria2_on_public_subscription(node: dict) -> bool:
+    return node_hysteria2_enabled(node) and hysteria2_egress_profile(node) == "public"
+
+
 def hysteria2_port(node: dict) -> int:
+    profiles = wireguard_nat_profile(node)
+    protocols = profiles.get("protocols") or {}
+    hy2 = protocols.get("hysteria2") if isinstance(protocols, dict) else None
+    if isinstance(hy2, dict) and hy2.get("port_offset") is not None:
+        return int(node["base_port"]) + int(hy2["port_offset"])
     hysteria2 = node.get("hysteria2") or {}
     return int(node["base_port"]) + int(hysteria2.get("port_offset", 5))
 
 
 def hysteria2_sni(node: dict) -> str:
+    profiles = wireguard_nat_profile(node)
+    protocols = profiles.get("protocols") or {}
+    hy2 = protocols.get("hysteria2") if isinstance(protocols, dict) else None
+    if isinstance(hy2, dict) and hy2.get("sni"):
+        return str(hy2["sni"])
     hysteria2 = node.get("hysteria2") or {}
     return str(hysteria2.get("sni") or first_server_name(node))
+
+
+def hysteria2_insecure(node: dict) -> bool:
+    profiles = wireguard_nat_profile(node)
+    protocols = profiles.get("protocols") or {}
+    hy2 = protocols.get("hysteria2") if isinstance(protocols, dict) else None
+    if isinstance(hy2, dict) and "insecure" in hy2:
+        return bool(hy2["insecure"])
+    hysteria2 = node.get("hysteria2") or {}
+    return bool(hysteria2.get("insecure", True))
 
 
 def hysteria2_alias(node: dict, *, alias: str | None = None) -> str:
@@ -434,14 +535,13 @@ def hysteria2_link(node: dict, *, alias: str | None = None) -> str:
     if not node_hysteria2_enabled(node):
         raise ValueError(f"node {node['name']} does not have hysteria2 enabled")
     secrets = node["secrets"]
-    hysteria2 = node.get("hysteria2") or {}
     host = node_public_host(node)
     port = hysteria2_port(node)
     password = secrets["HYSTERIA2_PASSWORD"]
     sni = hysteria2_sni(node)
     name = urllib.parse.quote(hysteria2_alias(node, alias=alias))
     query = f"sni={urllib.parse.quote(sni)}"
-    if hysteria2.get("insecure", True):
+    if hysteria2_insecure(node):
         query += "&insecure=1"
     query += "&alpn=h3"
     return f"hysteria2://{password}@{host}:{port}/?{query}#{name}"
@@ -450,7 +550,7 @@ def hysteria2_link(node: dict, *, alias: str | None = None) -> str:
 def subscription_links_for_node(node: dict, *, aliases: dict[str, str] | None = None) -> list[str]:
     aliases = aliases or {}
     links = [vless_link(node, alias=aliases.get("vless"))]
-    if node_hysteria2_enabled(node):
+    if node_hysteria2_on_public_subscription(node):
         links.append(hysteria2_link(node, alias=aliases.get("hysteria2")))
     return links
 
@@ -468,7 +568,6 @@ def extra_single_node_subscription_filename(filename: str) -> str:
 
 
 def mihomo_proxy_hysteria2_for_node(node: dict, *, alias: str | None = None) -> dict:
-    hysteria2 = node.get("hysteria2") or {}
     secrets = node["secrets"]
     return {
         "name": hysteria2_alias(node, alias=alias),
@@ -477,7 +576,7 @@ def mihomo_proxy_hysteria2_for_node(node: dict, *, alias: str | None = None) -> 
         "port": hysteria2_port(node),
         "password": secrets["HYSTERIA2_PASSWORD"],
         "sni": hysteria2_sni(node),
-        "skip-cert-verify": bool(hysteria2.get("insecure", True)),
+        "skip-cert-verify": hysteria2_insecure(node),
         "alpn": ["h3"],
     }
 
@@ -493,14 +592,54 @@ def extra_single_node_entries_for_source(repo_root: Path, source_node_name: str)
     ]
 
 
+def subscription_links_for_wireguard_nat_entry(node: dict, entry: dict) -> list[str]:
+    aliases = dict(entry.get("aliases") or {})
+    links: list[str] = [
+        socks5_link(node, alias=aliases.get("socks") or "QQPW-Residential-SOCKS5"),
+        vless_link(
+            node,
+            alias=aliases.get("vless") or "QQPW-Residential-Reality",
+            port=qqpw_vless_port(node),
+            uuid_value=qqpw_vless_uuid(node),
+        ),
+    ]
+    if node_hysteria2_enabled(node):
+        links.append(hysteria2_link(node, alias=aliases.get("hysteria2")))
+    return links
+
+
 def subscription_links_for_extra_entry(repo_root: Path, entry: dict) -> list[str]:
     source_node_name = str(entry["source_node"])
     eligible_names = {str(node["name"]) for node in subscription_publishable_nodes(repo_root)}
     if source_node_name not in eligible_names:
         return []
     node = enabled_node_by_name(repo_root, source_node_name)
+    profile = str(entry.get("egress_profile") or "alias")
+    if profile == "wireguard_nat":
+        if not node_has_dual_egress(node):
+            raise ValueError(
+                f"extra subscription {entry.get('filename')} requires dual egress on {source_node_name}"
+            )
+        return subscription_links_for_wireguard_nat_entry(node, entry)
     aliases = dict(entry.get("aliases") or {})
     return subscription_links_for_node(node, aliases=aliases)
+
+
+def mihomo_proxies_for_wireguard_nat_entry(node: dict, entry: dict) -> list[dict]:
+    aliases = dict(entry.get("aliases") or {})
+    # SOCKS5 first so ChatGPT group defaults to QQPW residential SOCKS.
+    proxies: list[dict] = [
+        mihomo_proxy_socks5_for_qqpw(node, alias=aliases.get("socks") or "QQPW-Residential-SOCKS5"),
+        mihomo_proxy_for_node(
+            node,
+            alias=aliases.get("vless") or "QQPW-Residential-Reality",
+            port=qqpw_vless_port(node),
+            uuid_value=qqpw_vless_uuid(node),
+        ),
+    ]
+    if node_hysteria2_enabled(node):
+        proxies.append(mihomo_proxy_hysteria2_for_node(node, alias=aliases.get("hysteria2")))
+    return proxies
 
 
 def mihomo_proxies_for_extra_entry(repo_root: Path, entry: dict) -> list[dict]:
@@ -509,9 +648,16 @@ def mihomo_proxies_for_extra_entry(repo_root: Path, entry: dict) -> list[dict]:
     if source_node_name not in eligible_names:
         return []
     node = enabled_node_by_name(repo_root, source_node_name)
+    profile = str(entry.get("egress_profile") or "alias")
+    if profile == "wireguard_nat":
+        if not node_has_dual_egress(node):
+            raise ValueError(
+                f"extra subscription {entry.get('filename')} requires dual egress on {source_node_name}"
+            )
+        return mihomo_proxies_for_wireguard_nat_entry(node, entry)
     aliases = dict(entry.get("aliases") or {})
     proxies = [mihomo_proxy_for_node(node, alias=aliases.get("vless"))]
-    if node_hysteria2_enabled(node):
+    if node_hysteria2_on_public_subscription(node):
         proxies.append(mihomo_proxy_hysteria2_for_node(node, alias=aliases.get("hysteria2")))
     return proxies
 
@@ -531,7 +677,7 @@ def mihomo_proxies_for_nodes(nodes: list[dict], *, repo_root: Path | None = None
     proxies: list[dict] = []
     for node in nodes:
         proxies.append(mihomo_proxy_for_node(node))
-        if node_hysteria2_enabled(node):
+        if node_hysteria2_on_public_subscription(node):
             proxies.append(mihomo_proxy_hysteria2_for_node(node))
     if repo_root is not None:
         proxies.extend(mihomo_extra_proxies(repo_root))
@@ -542,21 +688,27 @@ def mihomo_proxy_names_for_nodes(nodes: list[dict], *, repo_root: Path | None = 
     names: list[str] = []
     for node in nodes:
         names.append(str(node["subscription_alias"]))
-        if node_hysteria2_enabled(node):
+        if node_hysteria2_on_public_subscription(node):
             names.append(hysteria2_alias(node))
     if repo_root is not None:
         names.extend(mihomo_extra_proxy_names(repo_root))
     return names
 
 
-def mihomo_proxy_for_node(node: dict, *, alias: str | None = None) -> dict:
+def mihomo_proxy_for_node(
+    node: dict,
+    *,
+    alias: str | None = None,
+    port: int | None = None,
+    uuid_value: str | None = None,
+) -> dict:
     secrets = node["secrets"]
     return {
         "name": alias or str(node["subscription_alias"]),
         "type": "vless",
         "server": node_public_host(node),
-        "port": int(node["base_port"]) + 3,
-        "uuid": secrets["VLESS_UUID"],
+        "port": public_vless_port(node) if port is None else int(port),
+        "uuid": uuid_value or secrets["VLESS_UUID"],
         "network": "tcp",
         "tls": True,
         "udp": True,
@@ -665,16 +817,18 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # including apps with process-level PROXY overrides.
 # === END HIGHEST PRIORITY CURSOR DOMAIN DIRECT PROTECTIONS ===
 """
-    openai_domain_help = """# === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
-# Only official OpenAI-family destination domains are forced through PROXY.
-# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
-# over-route OpenAI-compatible relay domains.
-# === END OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
+    openai_domain_help = """# === OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
+# Only official OpenAI-family destination domains are forced through the
+# ChatGPT group (default: QQPW residential SOCKS5). Do not add broad
+# DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would over-route
+# OpenAI-compatible relay domains.
+# === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 """
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 # These process exceptions intentionally run before OpenAI/ChatGPT domain
-# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
-# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# ChatGPT-group rules. Safari is kept DIRECT even when it opens official
+# OpenAI-family destinations; use Microsoft Edge for browser-wide PROXY
+# behavior on macOS.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
@@ -711,7 +865,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # Domain and DustinWin/ruleset_geodata rules start below.
 """
     yaml_text = yaml_text.replace("rules:\n", cursor_domain_help, 1)
-    first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,PROXY"
+    first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,ChatGPT"
     first_pre_domain_process_rule = "- PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT"
     if first_pre_domain_process_rule in yaml_text:
         yaml_text = yaml_text.replace(
@@ -802,7 +956,7 @@ def mihomo_mirror_direct_rules() -> list[str]:
 
 
 def mihomo_openai_domain_proxy_rules() -> list[str]:
-    return [f"DOMAIN-SUFFIX,{domain},PROXY" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
+    return [f"DOMAIN-SUFFIX,{domain},ChatGPT" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
 
 
 def mihomo_proxy_node_direct_rules(repo_root: Path = REPO_ROOT) -> list[str]:
@@ -869,9 +1023,65 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
     return rules
 
 
+def _qqpw_names_socks_first(names: list[str]) -> list[str]:
+    socks = [name for name in names if "SOCKS" in name.upper()]
+    rest = [name for name in names if name not in socks]
+    return socks + rest
+
+
+def mihomo_classify_proxy_names(nodes: list[dict], *, repo_root: Path | None = None) -> dict[str, list[str]]:
+    """Split leaf proxies into ChatGPT (QQPW) vs general PROXY candidates."""
+    qqpw_names: list[str] = []
+    general_names: list[str] = []
+    for proxy in mihomo_proxies_for_nodes(nodes, repo_root=repo_root):
+        name = str(proxy["name"])
+        if name.startswith("QQPW-"):
+            qqpw_names.append(name)
+        else:
+            general_names.append(name)
+    qqpw_names = _qqpw_names_socks_first(qqpw_names)
+    return {
+        "qqpw": qqpw_names,
+        "general": general_names,
+        "all": general_names + qqpw_names,
+    }
+
+
+def mihomo_proxy_groups_for_nodes(nodes: list[dict], *, repo_root: Path | None = None) -> list[dict]:
+    classified = mihomo_classify_proxy_names(nodes, repo_root=repo_root)
+    qqpw_names = classified["qqpw"]
+    general_names = classified["general"]
+    # Auto prefers general (non-QQPW) exits; ChatGPT defaults to QQPW SOCKS5.
+    auto_proxies = general_names or classified["all"] or ["DIRECT"]
+    chatgpt_proxies = [*qqpw_names, *general_names, "DIRECT"]
+    if not qqpw_names and not general_names:
+        chatgpt_proxies = ["DIRECT"]
+    proxy_select = ["Auto", *general_names, *qqpw_names, "DIRECT"]
+
+    return [
+        {
+            "name": "PROXY",
+            "type": "select",
+            "proxies": proxy_select,
+        },
+        {
+            "name": "ChatGPT",
+            "type": "select",
+            "proxies": chatgpt_proxies,
+        },
+        {
+            "name": "Auto",
+            "type": "url-test",
+            "proxies": auto_proxies,
+            "url": "http://www.gstatic.com/generate_204",
+            "interval": 300,
+            "tolerance": 80,
+        },
+    ]
+
+
 def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
     nodes = subscription_publishable_nodes(repo_root)
-    proxy_names = mihomo_proxy_names_for_nodes(nodes, repo_root=repo_root)
     default_proxy = "PROXY"
     config = {
         "mixed-port": 7890,
@@ -893,21 +1103,7 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
         "tun": mihomo_tun_config(repo_root),
         "dns": mihomo_dns_config(),
         "proxies": mihomo_proxies_for_nodes(nodes, repo_root=repo_root),
-        "proxy-groups": [
-            {
-                "name": "PROXY",
-                "type": "select",
-                "proxies": [*proxy_names[:1], "Auto", *proxy_names[1:], "DIRECT"],
-            },
-            {
-                "name": "Auto",
-                "type": "url-test",
-                "proxies": proxy_names,
-                "url": "http://www.gstatic.com/generate_204",
-                "interval": 300,
-                "tolerance": 80,
-            },
-        ],
+        "proxy-groups": mihomo_proxy_groups_for_nodes(nodes, repo_root=repo_root),
         "rule-providers": {
             "privateip": mihomo_rule_provider("privateip", "ipcidr"),
             "cn": mihomo_rule_provider("cn", "domain"),
@@ -965,9 +1161,8 @@ def render_v2ray_subscription(repo_root: Path = REPO_ROOT, node_name: str | None
     links: list[str] = []
     for node in nodes:
         links.extend(subscription_links_for_node(node))
-        if node_name is not None:
-            for entry in extra_single_node_entries_for_source(repo_root, str(node["name"])):
-                links.extend(subscription_links_for_extra_entry(repo_root, entry))
+    # Extra profiles (e.g. qqpw wireguard_nat) are published as their own files and
+    # only folded into the multi-node subscription — never aliased into a host file.
     if node_name is None:
         for entry in extra_single_node_subscriptions(repo_root):
             links.extend(subscription_links_for_extra_entry(repo_root, entry))
@@ -1026,11 +1221,11 @@ def render_subscription_landing_page(repo_root: Path = REPO_ROOT) -> str:
         provider = html.escape(str(node.get("provider", "unknown")))
         pending_note = " · 探测异常，暂仍发布" if node_name in pending_names else ""
         protocol_note = "VLESS Reality"
-        if node_hysteria2_enabled(node):
+        if node_hysteria2_on_public_subscription(node):
             protocol_note += " · Hysteria2"
-            egress_note = str((node.get("hysteria2") or {}).get("egress_note", "")).strip()
-            if egress_note:
-                protocol_note += f" · {egress_note}"
+        if node_has_dual_egress(node):
+            expected = ((node_egress_profiles(node).get("public") or {}).get("expected_exit_ip") or node_public_host(node))
+            protocol_note += f" · public egress {expected}"
         v2ray_url = base_url + f"/{single_node_subscription_filename(node_name)}"
         v2ray_url_html = html.escape(v2ray_url)
         node_sections.append(
@@ -1932,7 +2127,7 @@ def proxy_outbound_for_node(node: dict) -> dict:
         "type": "vless",
         "tag": f"proxy_{node['name']}",
         "server": node_public_host(node),
-        "server_port": int(node["base_port"]) + 3,
+        "server_port": public_vless_port(node),
         "uuid": secrets["VLESS_UUID"],
         "flow": "xtls-rprx-vision",
         "packet_encoding": "xudp",
@@ -2005,7 +2200,8 @@ Generated for the GG proxy subscription service.
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
 - Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
-- Official OpenAI / ChatGPT / Codex domains are high-priority `PROXY` rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. This covers ChatGPT/Codex WebSocket traffic to `chatgpt.com` without broad keyword rules.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-SOCKS5` (WG residential NAT). Other nodes remain selectable in that group.
+- General traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
 - On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.
 - Antigravity, macOS Microsoft Edge, and Simprint Chrome profile paths are default process-level `PROXY` overrides. Simprint rules target the Chromium browser Simprint launches, not `C:\\Users\\...\\Simprint\\simprint.exe`, not `C:\\Users\\...\\Simprint\\simprint-runtime.exe`, and not Simprint's fixed WebView2 UI runtime.

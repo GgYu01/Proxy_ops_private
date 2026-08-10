@@ -231,6 +231,25 @@ else
   "${PYTHON}" "${ROOT_DIR}/scripts/render_artifacts.py"
 fi
 
+REQUIRE_DUAL_EGRESS="$("${PYTHON}" - "${SUBSCRIPTIONS_CONFIG}" <<'PY'
+import sys
+from pathlib import Path
+import yaml
+payload = yaml.safe_load(Path(sys.argv[1]).read_text(encoding="utf-8")) or {}
+policy = payload.get("availability_policy") or {}
+print("1" if policy.get("require_dual_egress_assertions") else "0")
+PY
+)"
+if [[ "${REQUIRE_DUAL_EGRESS}" == "1" ]]; then
+  echo "[INFO] Enforcing vmrack/qqpw dual-egress separation + exit-IP assertions"
+  DUAL_EGRESS_MODE="${SEA_SUBSCRIPTION_DUAL_EGRESS_MODE:-live}"
+  if [[ "${DUAL_EGRESS_MODE}" == "static" ]]; then
+    "${PYTHON}" "${ROOT_DIR}/scripts/probe_dual_egress_ips.py" --static-only
+  else
+    "${PYTHON}" "${ROOT_DIR}/scripts/probe_dual_egress_ips.py"
+  fi
+fi
+
 if [[ ! -f "${SUBSCRIPTION_CONTAINER_CONFIG_FILE}" || ! -f "${SUBSCRIPTION_PUBLISH_MANIFEST}" ]]; then
   echo "[ERROR] Missing generated publish config. Run scripts/render_artifacts.py first." >&2
   exit 12

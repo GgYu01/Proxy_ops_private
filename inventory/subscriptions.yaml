@@ -36,15 +36,19 @@
     "mihomo_startup_timeout_seconds": 8,
     "curl_timeout_seconds": 12,
     "proxy_probe_attempts": 2,
-    "ledger_path": "state/node_availability.json"
+    "ledger_path": "state/node_availability.json",
+    "egress_ip_probe_url": "https://api.ipify.org",
+    "require_dual_egress_assertions": true
   },
   "extra_single_node_subscriptions": [
     {
       "filename": "qqpw",
       "source_node": "vmrack1",
+      "egress_profile": "wireguard_nat",
       "title": "QQPW-Residential",
-      "description": "vmrack1 VLESS/Hysteria2 with WireGuard residential egress",
+      "description": "vmrack1 WireGuard residential NAT egress (exit IP distinct from GG-Vmrack1 public 38.65.93.39)",
       "aliases": {
+        "socks": "QQPW-Residential-SOCKS5",
         "vless": "QQPW-Residential-Reality",
         "hysteria2": "QQPW-Residential-Hysteria2"
       }

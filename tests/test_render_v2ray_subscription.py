@@ -63,13 +63,19 @@ class V2RayRenderTests(unittest.TestCase):
         self.assertNotIn("GG-Lisa-Stable", artifact)
         self.assertNotIn("GG-Lisahost-KR", artifact)
         self.assertNotIn("GG-Vmrack2", artifact)
+        # public VLESS for 3 healthy nodes + qqpw VLESS on :10006
         self.assertEqual(4, sum(1 for line in artifact.splitlines() if line.startswith("vless://")))
-        self.assertEqual(2, sum(1 for line in artifact.splitlines() if line.startswith("hysteria2://")))
-        self.assertIn("GG-Vmrack1-Hysteria2", artifact)
+        # Hy2 belongs only to qqpw wireguard_nat profile
+        self.assertEqual(1, sum(1 for line in artifact.splitlines() if line.startswith("hysteria2://")))
+        self.assertNotIn("GG-Vmrack1-Hysteria2", artifact)
+        self.assertIn("QQPW-Residential-SOCKS5", artifact)
         self.assertIn("QQPW-Residential-Reality", artifact)
         self.assertIn("QQPW-Residential-Hysteria2", artifact)
         self.assertIn("@69.5.53.82:10003", artifact)
         self.assertIn("@38.65.93.39:10003", artifact)
+        self.assertIn("@38.65.93.39:10007", artifact)
+        self.assertIn("@38.65.93.39:10006", artifact)
+        self.assertIn("@38.65.93.39:10005", artifact)
         self.assertIn("@67.215.238.140:10003", artifact)
         self.assertIn("sni=www.cloudflare.com", artifact)
         self.assertIn("sni=www.microsoft.com", artifact)
@@ -104,7 +110,7 @@ class V2RayRenderTests(unittest.TestCase):
 
         self.assertEqual("", artifact)
 
-    def test_vmrack1_subscription_includes_hysteria2_and_qqpw_alias_profile(self) -> None:
+    def test_vmrack1_and_qqpw_use_distinct_ports(self) -> None:
         render_artifacts = load_module()
         with tempfile.TemporaryDirectory() as tmp:
             repo_root = copy_fixture(Path(tmp))
@@ -114,12 +120,20 @@ class V2RayRenderTests(unittest.TestCase):
                 render_artifacts.extra_single_node_subscriptions(repo_root)[0],
             )
 
-        self.assertIn("GG-Vmrack1-Hysteria2", vmrack1)
-        self.assertIn("@38.65.93.39:10005", vmrack1)
-        self.assertIn("QQPW-Residential-Reality", vmrack1)
-        self.assertIn("QQPW-Residential-Hysteria2", vmrack1)
+        self.assertIn("GG-Vmrack1", vmrack1)
+        self.assertIn("@38.65.93.39:10003", vmrack1)
+        self.assertNotIn("GG-Vmrack1-Hysteria2", vmrack1)
+        self.assertNotIn("QQPW-Residential-Reality", vmrack1)
+        self.assertNotIn("@38.65.93.39:10005", vmrack1)
+        self.assertNotIn("@38.65.93.39:10006", vmrack1)
+        self.assertIn("QQPW-Residential-SOCKS5", qqpw)
         self.assertIn("QQPW-Residential-Reality", qqpw)
         self.assertIn("QQPW-Residential-Hysteria2", qqpw)
+        self.assertIn("@38.65.93.39:10005", qqpw)
+        self.assertIn("@38.65.93.39:10006", qqpw)
+        self.assertIn("@38.65.93.39:10007", qqpw)
+        self.assertNotIn("@38.65.93.39:10003", qqpw)
+        self.assertIn("06890427-2f1b-4dfb-aacf-43eb6de9bbd1", qqpw)
 
 
 if __name__ == "__main__":

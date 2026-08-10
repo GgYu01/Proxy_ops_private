@@ -145,20 +145,18 @@ proxies:
   reality-opts:
     public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
     short-id: e0924c6d9062f4d5
-- name: GG-Vmrack1-Hysteria2
-  type: hysteria2
+- name: QQPW-Residential-SOCKS5
+  type: socks5
   server: 38.65.93.39
-  port: 10005
-  password: bef500b17b5aadc91efaf6fb1e9c268ed9c811454ce87fde
-  sni: www.microsoft.com
-  skip-cert-verify: true
-  alpn:
-  - h3
+  port: 10007
+  username: admin
+  password: password123
+  udp: true
 - name: QQPW-Residential-Reality
   type: vless
   server: 38.65.93.39
-  port: 10003
-  uuid: 46e1f1cc-6476-4fbc-b25d-969fa643c816
+  port: 10006
+  uuid: 06890427-2f1b-4dfb-aacf-43eb6de9bbd1
   network: tcp
   tls: true
   udp: true
@@ -181,21 +179,27 @@ proxy-groups:
 - name: PROXY
   type: select
   proxies:
-  - GG-US-SEA-BGP-01
   - Auto
+  - GG-US-SEA-BGP-01
   - GG-Vmrack1
-  - GG-Vmrack1-Hysteria2
+  - QQPW-Residential-SOCKS5
   - QQPW-Residential-Reality
   - QQPW-Residential-Hysteria2
+  - DIRECT
+- name: ChatGPT
+  type: select
+  proxies:
+  - QQPW-Residential-SOCKS5
+  - QQPW-Residential-Reality
+  - QQPW-Residential-Hysteria2
+  - GG-US-SEA-BGP-01
+  - GG-Vmrack1
   - DIRECT
 - name: Auto
   type: url-test
   proxies:
   - GG-US-SEA-BGP-01
   - GG-Vmrack1
-  - GG-Vmrack1-Hysteria2
-  - QQPW-Residential-Reality
-  - QQPW-Residential-Hysteria2
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 80
@@ -309,24 +313,26 @@ rules:
 - IP-CIDR,67.215.238.140/32,DIRECT,no-resolve
 # === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 # These process exceptions intentionally run before OpenAI/ChatGPT domain
-# proxy rules. Safari is kept DIRECT even when it opens official OpenAI-family
-# destinations; use Microsoft Edge for browser-wide PROXY behavior on macOS.
+# ChatGPT-group rules. Safari is kept DIRECT even when it opens official
+# OpenAI-family destinations; use Microsoft Edge for browser-wide PROXY
+# behavior on macOS.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 - PROCESS-PATH-WILDCARD,/Applications/Safari.app/Contents/*,DIRECT
 - PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
-# === OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
-# Only official OpenAI-family destination domains are forced through PROXY.
-# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
-# over-route OpenAI-compatible relay domains.
-# === END OFFICIAL OPENAI / CHATGPT DOMAIN PROXY RULES ===
-- DOMAIN-SUFFIX,openai.com,PROXY
-- DOMAIN-SUFFIX,chatgpt.com,PROXY
-- DOMAIN-SUFFIX,oaistatic.com,PROXY
-- DOMAIN-SUFFIX,oaiusercontent.com,PROXY
-- DOMAIN-SUFFIX,oaistatsig.com,PROXY
-- DOMAIN-SUFFIX,auth.openai.com,PROXY
-- DOMAIN-SUFFIX,auth0.openai.com,PROXY
-- DOMAIN-SUFFIX,cdn.openaimerge.com,PROXY
+# === OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
+# Only official OpenAI-family destination domains are forced through the
+# ChatGPT group (default: QQPW residential SOCKS5). Do not add broad
+# DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would over-route
+# OpenAI-compatible relay domains.
+# === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
+- DOMAIN-SUFFIX,openai.com,ChatGPT
+- DOMAIN-SUFFIX,chatgpt.com,ChatGPT
+- DOMAIN-SUFFIX,oaistatic.com,ChatGPT
+- DOMAIN-SUFFIX,oaiusercontent.com,ChatGPT
+- DOMAIN-SUFFIX,oaistatsig.com,ChatGPT
+- DOMAIN-SUFFIX,auth.openai.com,ChatGPT
+- DOMAIN-SUFFIX,auth0.openai.com,ChatGPT
+- DOMAIN-SUFFIX,cdn.openaimerge.com,ChatGPT
 # === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the
