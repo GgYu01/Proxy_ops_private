@@ -145,13 +145,6 @@ proxies:
   reality-opts:
     public-key: mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM
     short-id: e0924c6d9062f4d5
-- name: QQPW-Residential-SOCKS5
-  type: socks5
-  server: 38.65.93.39
-  port: 10007
-  username: admin
-  password: password123
-  udp: true
 - name: QQPW-Residential-Reality
   type: vless
   server: 38.65.93.39
@@ -182,14 +175,12 @@ proxy-groups:
   - Auto
   - GG-US-SEA-BGP-01
   - GG-Vmrack1
-  - QQPW-Residential-SOCKS5
   - QQPW-Residential-Reality
   - QQPW-Residential-Hysteria2
   - DIRECT
 - name: ChatGPT
   type: select
   proxies:
-  - QQPW-Residential-SOCKS5
   - QQPW-Residential-Reality
   - QQPW-Residential-Hysteria2
   - GG-US-SEA-BGP-01
@@ -321,9 +312,9 @@ rules:
 - PROCESS-PATH-WILDCARD,/System/Applications/Safari.app/Contents/*,DIRECT
 # === OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 # Only official OpenAI-family destination domains are forced through the
-# ChatGPT group (default: QQPW residential SOCKS5). Do not add broad
-# DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would over-route
-# OpenAI-compatible relay domains.
+# ChatGPT group (default: QQPW residential VLESS Reality). Hy2 is optional.
+# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
+# over-route OpenAI-compatible relay domains.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 - DOMAIN-SUFFIX,openai.com,ChatGPT
 - DOMAIN-SUFFIX,chatgpt.com,ChatGPT

@@ -1,5 +1,4 @@
 vless://c8471f9b-37d4-4d7d-9787-07d80ca06557@69.5.53.82:10003?security=reality&encryption=none&pbk=ZpOH8N0bk-rey0pU2hqOLAGH_LnYMRi4HxVbbgP5nig&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.cloudflare.com&sid=3465c78a4b49ca4e#GG-US-SEA-BGP-01
 vless://46e1f1cc-6476-4fbc-b25d-969fa643c816@38.65.93.39:10003?security=reality&encryption=none&pbk=mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.cloudflare.com&sid=e0924c6d9062f4d5#GG-Vmrack1
-socks5://admin:password123@38.65.93.39:10007#QQPW-Residential-SOCKS5
 vless://06890427-2f1b-4dfb-aacf-43eb6de9bbd1@38.65.93.39:10006?security=reality&encryption=none&pbk=mW-ESG803vEubb2zIEGlm7Ha0fg8Ojme6_ihGnz_-nM&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.cloudflare.com&sid=e0924c6d9062f4d5#QQPW-Residential-Reality
 hysteria2://bef500b17b5aadc91efaf6fb1e9c268ed9c811454ce87fde@38.65.93.39:10005/?sni=www.microsoft.com&insecure=1&alpn=h3#QQPW-Residential-Hysteria2

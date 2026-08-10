@@ -19,14 +19,14 @@
       "sha256": "1f336f1a37f6d0fa5017412d507066cba463254de8fff145fb1366104126babc"
     },
     {
-      "bytes": 11437,
+      "bytes": 11482,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "5a34c07417bf225ed956b8271618d457227b86325af5328b735ca9fc7c33e073"
+      "sha256": "3dd16f7057bfd6b43ead8437d09435e1f8b2dff9cee0413a9cc857759106b81d"
     },
     {
-      "bytes": 16456,
+      "bytes": 16278,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "736ec1b52f189ae8f708923cd729df66a7060513c2f031d2e378c90c591a8f79"
+      "sha256": "140c7cea299d68ac751d8a1f362439ccba41e501603710fd938b9b126a8666da"
     },
     {
       "bytes": 329,
@@ -39,9 +39,9 @@
       "sha256": "fbb059ccf5d28ccfe282d071f9a073b52fd134a004968d541d1b12204cdeaba9"
     },
     {
-      "bytes": 474,
+      "bytes": 404,
       "path": "generated/subscriptions/v2ray_node_qqpw.txt",
-      "sha256": "269473349ec1dca2fe47dc987788a412f4d13715a591bd58ca47c97b8362801d"
+      "sha256": "3b30044628064537ec40b3bda64eaf706d69b0007474753356f87ee8d7594a5d"
     },
     {
       "bytes": 246,
@@ -54,9 +54,9 @@
       "sha256": "4d8d6bfa30ca7c42229e138d31fea4d58fb8bb62a85ddefddf660230ab7220b1"
     },
     {
-      "bytes": 961,
+      "bytes": 891,
       "path": "generated/subscriptions/v2ray_nodes.txt",
-      "sha256": "83d5974ef9f96c28ebc2d9bfb0f0de845c85322812b71a8c59a828111dca8ac2"
+      "sha256": "4760fedf281920e6a31e43881dc36684972aff70017274eb3c59f595cfb9088e"
     }
   ],
   "publish_node": "us_sea_bgp_01",

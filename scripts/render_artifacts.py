@@ -594,8 +594,8 @@ def extra_single_node_entries_for_source(repo_root: Path, source_node_name: str)
 
 def subscription_links_for_wireguard_nat_entry(node: dict, entry: dict) -> list[str]:
     aliases = dict(entry.get("aliases") or {})
+    # VLESS is the required client path; Hy2 is optional bonus only.
     links: list[str] = [
-        socks5_link(node, alias=aliases.get("socks") or "QQPW-Residential-SOCKS5"),
         vless_link(
             node,
             alias=aliases.get("vless") or "QQPW-Residential-Reality",
@@ -627,9 +627,8 @@ def subscription_links_for_extra_entry(repo_root: Path, entry: dict) -> list[str
 
 def mihomo_proxies_for_wireguard_nat_entry(node: dict, entry: dict) -> list[dict]:
     aliases = dict(entry.get("aliases") or {})
-    # SOCKS5 first so ChatGPT group defaults to QQPW residential SOCKS.
+    # VLESS first so ChatGPT group defaults to QQPW Reality; Hy2 is bonus.
     proxies: list[dict] = [
-        mihomo_proxy_socks5_for_qqpw(node, alias=aliases.get("socks") or "QQPW-Residential-SOCKS5"),
         mihomo_proxy_for_node(
             node,
             alias=aliases.get("vless") or "QQPW-Residential-Reality",
@@ -819,9 +818,9 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 """
     openai_domain_help = """# === OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 # Only official OpenAI-family destination domains are forced through the
-# ChatGPT group (default: QQPW residential SOCKS5). Do not add broad
-# DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would over-route
-# OpenAI-compatible relay domains.
+# ChatGPT group (default: QQPW residential VLESS Reality). Hy2 is optional.
+# Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
+# over-route OpenAI-compatible relay domains.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 """
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
@@ -1023,10 +1022,18 @@ def mihomo_proxy_process_rules(platform: str) -> list[str]:
     return rules
 
 
-def _qqpw_names_socks_first(names: list[str]) -> list[str]:
-    socks = [name for name in names if "SOCKS" in name.upper()]
-    rest = [name for name in names if name not in socks]
-    return socks + rest
+def _qqpw_names_vless_first(names: list[str]) -> list[str]:
+    """Prefer QQPW VLESS Reality; keep Hy2 as trailing bonus."""
+    vless = [name for name in names if "Reality" in name or ("Hysteria" not in name and "SOCKS" not in name.upper())]
+    hy2 = [name for name in names if "Hysteria" in name]
+    rest = [name for name in names if name not in vless and name not in hy2]
+    # Deduplicate while preserving order: Reality-like first, then other non-hy2, then hy2.
+    ordered: list[str] = []
+    for group in (vless, rest, hy2):
+        for name in group:
+            if name not in ordered:
+                ordered.append(name)
+    return ordered
 
 
 def mihomo_classify_proxy_names(nodes: list[dict], *, repo_root: Path | None = None) -> dict[str, list[str]]:
@@ -1039,7 +1046,7 @@ def mihomo_classify_proxy_names(nodes: list[dict], *, repo_root: Path | None = N
             qqpw_names.append(name)
         else:
             general_names.append(name)
-    qqpw_names = _qqpw_names_socks_first(qqpw_names)
+    qqpw_names = _qqpw_names_vless_first(qqpw_names)
     return {
         "qqpw": qqpw_names,
         "general": general_names,
@@ -1051,7 +1058,7 @@ def mihomo_proxy_groups_for_nodes(nodes: list[dict], *, repo_root: Path | None =
     classified = mihomo_classify_proxy_names(nodes, repo_root=repo_root)
     qqpw_names = classified["qqpw"]
     general_names = classified["general"]
-    # Auto prefers general (non-QQPW) exits; ChatGPT defaults to QQPW SOCKS5.
+    # Auto prefers general (non-QQPW) exits; ChatGPT defaults to QQPW VLESS.
     auto_proxies = general_names or classified["all"] or ["DIRECT"]
     chatgpt_proxies = [*qqpw_names, *general_names, "DIRECT"]
     if not qqpw_names and not general_names:
@@ -2200,7 +2207,7 @@ Generated for the GG proxy subscription service.
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
 - Browser and WebView runtimes such as Edge Beta, `msedge.exe`, and `msedgewebview2.exe` are intentionally not process-proxied by default because that over-routes unrelated browsing. They use `PROXY` only when destination rules require it.
-- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-SOCKS5` (WG residential NAT). Other nodes remain selectable in that group.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - OpenAI-family desktop app paths are `DIRECT` fallbacks after those official domain rules. That prevents Codex Desktop, ChatGPT, or ChatGPT Atlas non-OpenAI destinations such as Google push channels from being dragged into `MATCH,PROXY` by process identity.
 - On macOS, Safari app paths are high-priority `DIRECT` process exceptions before official OpenAI domain rules. Use Microsoft Edge when browser-wide `PROXY` behavior is required.

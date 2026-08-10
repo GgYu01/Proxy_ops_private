@@ -48,7 +48,6 @@
       "title": "QQPW-Residential",
       "description": "vmrack1 WireGuard residential NAT egress (exit IP distinct from GG-Vmrack1 public 38.65.93.39)",
       "aliases": {
-        "socks": "QQPW-Residential-SOCKS5",
         "vless": "QQPW-Residential-Reality",
         "hysteria2": "QQPW-Residential-Hysteria2"
       }

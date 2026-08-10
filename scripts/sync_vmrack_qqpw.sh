@@ -99,16 +99,15 @@ MIHOMO_PATH="${ROOT_DIR}/generated/subscriptions/mihomo-universal.yaml"
 QQPW_PATH="${ROOT_DIR}/generated/subscriptions/v2ray_node_qqpw.txt"
 VMRACK_PATH="${ROOT_DIR}/generated/subscriptions/v2ray_node_vmrack1.txt"
 grep -q 'name: GG-Vmrack1' "${MIHOMO_PATH}"
-grep -q 'name: QQPW-Residential-SOCKS5' "${MIHOMO_PATH}"
 grep -q 'name: QQPW-Residential-Reality' "${MIHOMO_PATH}"
 grep -q 'name: ChatGPT' "${MIHOMO_PATH}"
 grep -q 'name: PROXY' "${MIHOMO_PATH}"
 ! grep -q 'name: Vmrack-Public' "${MIHOMO_PATH}"
 ! grep -q 'name: QQPW-Residential$' "${MIHOMO_PATH}"
-grep -q 'port: 10007' "${MIHOMO_PATH}"
+! grep -q 'QQPW-Residential-SOCKS5' "${MIHOMO_PATH}"
 grep -q 'port: 10006' "${MIHOMO_PATH}"
-grep -q '@38.65.93.39:10007' "${QQPW_PATH}"
 grep -q '@38.65.93.39:10006' "${QQPW_PATH}"
+! grep -q '@38.65.93.39:10007' "${QQPW_PATH}"
 grep -q '@38.65.93.39:10003' "${VMRACK_PATH}"
 ! grep -q '@38.65.93.39:10003' "${QQPW_PATH}"
 ! grep -q 'GG-Vmrack1-Hysteria2' "${MIHOMO_PATH}"
@@ -133,7 +132,7 @@ if [[ "${REFRESH_LOCAL}" -eq 1 ]]; then
   echo "[INFO] Checking published mihomo profile contains dual-egress ports"
   curl -fsS "https://subs.sea.prod.gglohh.top/subscriptions/mihomo-universal.yaml" \
     | tee /tmp/mihomo-universal.synced.yaml \
-    | grep -E 'QQPW-Residential-SOCKS5|QQPW-Residential-Reality|port: 10007|port: 10006|name: ChatGPT|name: GG-Vmrack1' >/dev/null
+    | grep -E 'QQPW-Residential-Reality|port: 10006|name: ChatGPT|name: GG-Vmrack1' >/dev/null
   echo "[OK] SEA mihomo profile reachable and contains dual-egress markers"
 fi
 
