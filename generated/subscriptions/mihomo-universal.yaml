@@ -108,6 +108,25 @@ dns:
     +.mirrors.163.com: *id001
     +.docker.m.daocloud.io: *id001
     +.daocloud.io: *id001
+    +.openai.com: &id002
+    - https://1.1.1.1/dns-query#ChatGPT
+    - https://8.8.8.8/dns-query#ChatGPT
+    +.chatgpt.com: *id002
+    +.oaistatic.com: *id002
+    +.oaiusercontent.com: *id002
+    +.oaistatsig.com: *id002
+    +.auth.openai.com: *id002
+    +.auth0.openai.com: *id002
+    +.cdn.openaimerge.com: *id002
+    +.stun.l.google.com: *id002
+    +.stun1.l.google.com: *id002
+    +.stun2.l.google.com: *id002
+    +.stun3.l.google.com: *id002
+    +.stun4.l.google.com: *id002
+    +.stun.cloudflare.com: *id002
+    +.global.stun.twilio.com: *id002
+    +.stun.services.mozilla.com: *id002
+    +.ip.net.coffee: *id002
   proxy-server-nameserver:
   - https://dns.alidns.com/dns-query
   - https://doh.pub/dns-query
@@ -307,6 +326,8 @@ rules:
 # ChatGPT group (default: QQPW residential VLESS Reality). Hy2 is optional.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
 # over-route OpenAI-compatible relay domains.
+# WebRTC/STUN/TURN and operator probe hosts (ip.net.coffee) follow immediately
+# so ChatGPT-page fingerprints stay on QQPW without binding whole browsers.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 - DOMAIN-SUFFIX,openai.com,ChatGPT
 - DOMAIN-SUFFIX,chatgpt.com,ChatGPT
@@ -316,6 +337,15 @@ rules:
 - DOMAIN-SUFFIX,auth.openai.com,ChatGPT
 - DOMAIN-SUFFIX,auth0.openai.com,ChatGPT
 - DOMAIN-SUFFIX,cdn.openaimerge.com,ChatGPT
+- DOMAIN-SUFFIX,stun.l.google.com,ChatGPT
+- DOMAIN-SUFFIX,stun1.l.google.com,ChatGPT
+- DOMAIN-SUFFIX,stun2.l.google.com,ChatGPT
+- DOMAIN-SUFFIX,stun3.l.google.com,ChatGPT
+- DOMAIN-SUFFIX,stun4.l.google.com,ChatGPT
+- DOMAIN-SUFFIX,stun.cloudflare.com,ChatGPT
+- DOMAIN-SUFFIX,global.stun.twilio.com,ChatGPT
+- DOMAIN-SUFFIX,stun.services.mozilla.com,ChatGPT
+- DOMAIN-SUFFIX,ip.net.coffee,ChatGPT
 # === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
 # embedded WebView or helper subprocess traffic stays DIRECT even when the

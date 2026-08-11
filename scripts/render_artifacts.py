@@ -100,6 +100,25 @@ OPENAI_PROXY_DOMAIN_SUFFIXES = [
     "cdn.openaimerge.com",
 ]
 
+# WebRTC/STUN/TURN used by browsers when visiting ChatGPT. Keep these on the
+# ChatGPT group so UDP fingerprint matches the QQPW residential HTTP exit,
+# without binding the whole browser process (which burns traffic on FPGA etc.).
+CHATGPT_WEBRTC_DOMAIN_SUFFIXES = [
+    "stun.l.google.com",
+    "stun1.l.google.com",
+    "stun2.l.google.com",
+    "stun3.l.google.com",
+    "stun4.l.google.com",
+    "stun.cloudflare.com",
+    "global.stun.twilio.com",
+    "stun.services.mozilla.com",
+]
+
+# Fingerprint / leak test hosts the operator uses for ChatGPT path checks.
+CHATGPT_PROBE_DOMAIN_SUFFIXES = [
+    "ip.net.coffee",
+]
+
 PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [],
     "macos": [],
@@ -765,6 +784,16 @@ def mihomo_rule_provider(name: str, behavior: str) -> dict:
 
 def mihomo_dns_config() -> dict:
     domestic_resolvers = ["223.5.5.5", "119.29.29.29"]
+    # Resolve ChatGPT-path domains via DoH over the ChatGPT group so DNS
+    # queries themselves do not leak to domestic resolvers.
+    chatgpt_doh = ["https://1.1.1.1/dns-query#ChatGPT", "https://8.8.8.8/dns-query#ChatGPT"]
+    policy = mihomo_domestic_dns_nameserver_policy()
+    for domain in (
+        *OPENAI_PROXY_DOMAIN_SUFFIXES,
+        *CHATGPT_WEBRTC_DOMAIN_SUFFIXES,
+        *CHATGPT_PROBE_DOMAIN_SUFFIXES,
+    ):
+        policy[f"+.{domain}"] = chatgpt_doh
     return {
         "enable": True,
         "listen": "0.0.0.0:1053",
@@ -784,7 +813,7 @@ def mihomo_dns_config() -> dict:
         ],
         "default-nameserver": domestic_resolvers,
         "nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
-        "nameserver-policy": mihomo_domestic_dns_nameserver_policy(),
+        "nameserver-policy": policy,
         "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
         "fallback": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
         "fallback-filter": {
@@ -851,6 +880,8 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # ChatGPT group (default: QQPW residential VLESS Reality). Hy2 is optional.
 # Do not add broad DOMAIN-KEYWORD,openai/codex/openaiapi rules; those would
 # over-route OpenAI-compatible relay domains.
+# WebRTC/STUN/TURN and operator probe hosts (ip.net.coffee) follow immediately
+# so ChatGPT-page fingerprints stay on QQPW without binding whole browsers.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 """
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
@@ -1024,6 +1055,14 @@ def mihomo_mirror_direct_rules() -> list[str]:
 
 def mihomo_openai_domain_proxy_rules() -> list[str]:
     return [f"DOMAIN-SUFFIX,{domain},ChatGPT" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
+
+
+def mihomo_chatgpt_webrtc_domain_rules() -> list[str]:
+    return [f"DOMAIN-SUFFIX,{domain},ChatGPT" for domain in CHATGPT_WEBRTC_DOMAIN_SUFFIXES]
+
+
+def mihomo_chatgpt_probe_domain_rules() -> list[str]:
+    return [f"DOMAIN-SUFFIX,{domain},ChatGPT" for domain in CHATGPT_PROBE_DOMAIN_SUFFIXES]
 
 
 def mihomo_proxy_node_direct_rules(repo_root: Path = REPO_ROOT) -> list[str]:
@@ -1217,6 +1256,8 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_proxy_node_direct_rules(repo_root),
             *mihomo_pre_domain_direct_process_rules(platform),
             *mihomo_openai_domain_proxy_rules(),
+            *mihomo_chatgpt_webrtc_domain_rules(),
+            *mihomo_chatgpt_probe_domain_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_domestic_platform_direct_rules(),
             *mihomo_mirror_direct_rules(),
@@ -2306,8 +2347,12 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic. OpenAI-family sites still use DOMAIN → `ChatGPT`.
-- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
+- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}.
+- WebRTC/STUN domains also use `ChatGPT` so browser WebRTC on ChatGPT pages matches the QQPW exit: {", ".join(f"`{domain}`" for domain in CHATGPT_WEBRTC_DOMAIN_SUFFIXES)}.
+- Operator probe hosts use `ChatGPT`: {", ".join(f"`{domain}`" for domain in CHATGPT_PROBE_DOMAIN_SUFFIXES)} (dns/webrtc/gpt checks).
+- DNS for those ChatGPT-path domains is resolved via DoH over the `ChatGPT` group (`nameserver-policy` → `1.1.1.1/8.8.8.8#ChatGPT`) to reduce DNS leaks.
+- The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.
 - Antigravity install paths remain process-level `PROXY` overrides (developer tooling, not browser fingerprint).

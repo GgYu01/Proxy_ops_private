@@ -1,47 +1,47 @@
 {
-  "updated_at": "2026-08-10T17:06:31.521152Z",
+  "updated_at": "2026-08-11T01:16:34.215351Z",
   "nodes": {
     "us_sea_bgp_01": {
-      "last_probe_at": "2026-08-10T17:06:29.514331Z",
+      "last_probe_at": "2026-08-11T01:16:19.366810Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-08-10T17:06:29.514331Z",
-      "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
+      "last_success_at": "2026-08-11T01:16:19.366810Z",
+      "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=ok (attempt1: curl openai proxy http status=401)"
     },
     "vmrack1": {
-      "last_probe_at": "2026-08-10T17:05:59.206730Z",
+      "last_probe_at": "2026-08-11T01:15:49.772935Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-08-10T17:05:59.206730Z",
+      "last_success_at": "2026-08-11T01:15:49.772935Z",
       "detail": "tcp=ok (tcp connect ok 38.65.93.39:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "dedirock": {
-      "last_probe_at": "2026-08-10T17:06:05.354914Z",
+      "last_probe_at": "2026-08-11T01:15:55.224570Z",
       "last_health": "down",
       "unavailable_since": "2026-08-04T00:42:56.560593Z",
       "last_success_at": "2026-08-03T08:20:00Z",
       "detail": "tcp=failed (tcp 67.215.238.140:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost": {
-      "last_probe_at": "2026-08-10T17:05:31.609014Z",
+      "last_probe_at": "2026-08-11T01:15:21.986218Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=failed (tcp 38.34.8.59:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost_kr": {
-      "last_probe_at": "2026-08-10T17:05:55.773207Z",
+      "last_probe_at": "2026-08-11T01:15:46.324061Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
-      "detail": "tcp=failed (tcp 203.227.191.106:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T07:05:58.291565100-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T07:05:58.292076600-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T07:05:58.755301200-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T07:05:58.755301200-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
+      "detail": "tcp=failed (tcp 203.227.191.106:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:15:48.850027900-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:15:48.850557400-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:15:49.319168600-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:15:49.319168600-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
     },
     "vmrack2": {
-      "last_probe_at": "2026-08-10T17:06:01.912243Z",
+      "last_probe_at": "2026-08-11T01:15:51.786094Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.663097Z",
-      "detail": "tcp=failed (tcp 38.65.93.94:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T07:06:04.439957800-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T07:06:04.439957800-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T07:06:04.904636900-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T07:06:04.904636900-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
+      "detail": "tcp=failed (tcp 38.65.93.94:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:15:54.308201700-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:15:54.308201700-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:15:54.775593300-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:15:54.776119400-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
     }
   }
 }

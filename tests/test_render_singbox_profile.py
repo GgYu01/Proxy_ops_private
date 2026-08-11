@@ -244,11 +244,18 @@ class SingboxProfileRenderTests(unittest.TestCase):
             chatgpt_proxies.index("GG-Vmrack1"),
         )
         self.assertIn("DOMAIN-SUFFIX,openai.com,ChatGPT", mihomo)
+        self.assertIn("DOMAIN-SUFFIX,stun.l.google.com,ChatGPT", mihomo)
+        self.assertIn("DOMAIN-SUFFIX,ip.net.coffee,ChatGPT", mihomo)
+        self.assertIn("dns-query#ChatGPT", mihomo)
         self.assertNotIn("PROCESS-NAME,msedge.exe,ChatGPT", mihomo)
         self.assertNotIn("PROCESS-NAME,chrome.exe,ChatGPT", mihomo)
         self.assertIn("RULE-SET,cn,DIRECT", mihomo)
         self.assertLess(
             mihomo.index("DOMAIN-SUFFIX,openai.com,ChatGPT"),
+            mihomo.index("RULE-SET,cn,DIRECT"),
+        )
+        self.assertLess(
+            mihomo.index("DOMAIN-SUFFIX,stun.l.google.com,ChatGPT"),
             mihomo.index("RULE-SET,cn,DIRECT"),
         )
         # Old alias bug: QQPW Reality must never share the public VLESS port.

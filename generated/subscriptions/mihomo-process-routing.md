@@ -13,8 +13,12 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic. OpenAI-family sites still use DOMAIN → `ChatGPT`.
-- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`. The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
+- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic.
+- Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`.
+- WebRTC/STUN domains also use `ChatGPT` so browser WebRTC on ChatGPT pages matches the QQPW exit: `stun.l.google.com`, `stun1.l.google.com`, `stun2.l.google.com`, `stun3.l.google.com`, `stun4.l.google.com`, `stun.cloudflare.com`, `global.stun.twilio.com`, `stun.services.mozilla.com`.
+- Operator probe hosts use `ChatGPT`: `ip.net.coffee` (dns/webrtc/gpt checks).
+- DNS for those ChatGPT-path domains is resolved via DoH over the `ChatGPT` group (`nameserver-policy` → `1.1.1.1/8.8.8.8#ChatGPT`) to reduce DNS leaks.
+- The ChatGPT group defaults to `QQPW-Residential-Reality` (WG residential VLESS). `QQPW-Residential-Hysteria2` is optional. Other nodes remain selectable in that group.
 - General non-browser traffic uses the `PROXY` group (default `Auto` over non-QQPW nodes). QQPW exits remain selectable there too.
 - Codex CLI/desktop install paths remain `DIRECT` fallbacks for non-OpenAI destinations after official domain rules.
 - Antigravity install paths remain process-level `PROXY` overrides (developer tooling, not browser fingerprint).
