@@ -1,47 +1,47 @@
 {
-  "updated_at": "2026-08-11T01:31:52.590900Z",
+  "updated_at": "2026-08-11T01:34:45.817922Z",
   "nodes": {
     "us_sea_bgp_01": {
-      "last_probe_at": "2026-08-11T01:31:50.653250Z",
+      "last_probe_at": "2026-08-11T01:34:43.898229Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-08-11T01:31:50.653250Z",
+      "last_success_at": "2026-08-11T01:34:43.898229Z",
       "detail": "tcp=ok (tcp connect ok 69.5.53.82:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "vmrack1": {
-      "last_probe_at": "2026-08-11T01:31:21.175890Z",
+      "last_probe_at": "2026-08-11T01:34:06.604571Z",
       "last_health": "healthy",
       "unavailable_since": null,
-      "last_success_at": "2026-08-11T01:31:21.175890Z",
+      "last_success_at": "2026-08-11T01:34:06.604571Z",
       "detail": "tcp=ok (tcp connect ok 38.65.93.39:10003); proxy=ok (attempt1: httpx openai proxy http status=401)"
     },
     "dedirock": {
-      "last_probe_at": "2026-08-11T01:31:26.531527Z",
+      "last_probe_at": "2026-08-11T01:34:12.797871Z",
       "last_health": "down",
       "unavailable_since": "2026-08-04T00:42:56.560593Z",
       "last_success_at": "2026-08-03T08:20:00Z",
-      "detail": "tcp=failed (tcp 67.215.238.140:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
+      "detail": "tcp=failed (tcp 67.215.238.140:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectTimeout: _ssl.c:993: The handshake operation timed out; curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost": {
-      "last_probe_at": "2026-08-11T01:30:53.501458Z",
+      "last_probe_at": "2026-08-11T01:33:38.897861Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
       "detail": "tcp=failed (tcp 38.34.8.59:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed | attempt2: httpx openai proxy failed: ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010); curl openai proxy http status=none exit=35 stderr=curl: (35) schannel: failed to receive handshake, SSL/TLS connection failed)"
     },
     "lisahost_kr": {
-      "last_probe_at": "2026-08-11T01:31:17.736734Z",
+      "last_probe_at": "2026-08-11T01:34:03.172263Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.661664Z",
-      "detail": "tcp=failed (tcp 203.227.191.106:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:31:20.255324500-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:31:20.255324500-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:31:20.728437400-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:31:20.728437400-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
+      "detail": "tcp=failed (tcp 203.227.191.106:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:34:05.691579100-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:34:05.691579100-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:34:06.157587900-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:34:06.157587900-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
     },
     "vmrack2": {
-      "last_probe_at": "2026-08-11T01:31:23.108930Z",
+      "last_probe_at": "2026-08-11T01:34:09.351960Z",
       "last_health": "down",
       "unavailable_since": "2026-06-13T07:13:15Z",
       "last_success_at": "2026-06-13T07:03:54.663097Z",
-      "detail": "tcp=failed (tcp 38.65.93.94:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:31:25.624100500-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:31:25.624100500-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:31:26.089562800-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:31:26.089562800-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
+      "detail": "tcp=failed (tcp 38.65.93.94:10003 failed: TimeoutError: timed out); proxy=failed (attempt1: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:34:11.878535300-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:34:11.879052800-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\" | attempt2: mihomo startup failed: mihomo exited rc=1; time=\"2026-08-10T15:34:12.345947300-10:00\" level=info msg=\"Start initial configuration in progress\" time=\"2026-08-10T15:34:12.345947300-10:00\" level=fatal msg=\"Parse config error: proxy 0: invalid REALITY public key\")"
     }
   }
 }
