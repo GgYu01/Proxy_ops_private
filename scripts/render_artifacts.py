@@ -72,6 +72,13 @@ DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES = [
     "ringzle.com",
 ]
 
+# Operator NAT / control domains must use PROXY and keep fake-ip (do NOT put
+# these in fake-ip-filter). Rules must beat PROCESS-NAME,ssh.exe,DIRECT so
+# `ssh -p ... root@nat.qq.pw` follows PROXY instead of process DIRECT.
+OPERATOR_PROXY_DOMAIN_SUFFIXES = [
+    "qq.pw",
+]
+
 # Domestic APT and container registry mirrors must bypass fake-ip and stay DIRECT.
 # WSL apt/podman workflows depend on these resolving to real addresses.
 MIRROR_DIRECT_DOMAIN_SUFFIXES = [
@@ -884,6 +891,12 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # so ChatGPT-page fingerprints stay on QQPW without binding whole browsers.
 # === END OFFICIAL OPENAI / CHATGPT DOMAIN ChatGPT GROUP RULES ===
 """
+    operator_proxy_domain_help = """# === OPERATOR NAT / QQ.PW DOMAIN PROXY RULES ===
+# qq.pw (incl. nat.qq.pw) must stay on PROXY with fake-ip enabled. Do not add
+# these suffixes to fake-ip-filter. These DOMAIN-SUFFIX rules are placed before
+# ssh/git process DIRECT protections so SSH to the QQ-NAT gateway follows PROXY.
+# === END OPERATOR NAT / QQ.PW DOMAIN PROXY RULES ===
+"""
     pre_domain_process_help = """# === HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 # Reserved for rare process exceptions that must stay DIRECT even before
 # OpenAI/ChatGPT domain and browser fingerprint ChatGPT-group rules.
@@ -932,6 +945,13 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
     first_openai_domain_rule = "- DOMAIN-SUFFIX,openai.com,ChatGPT"
     if first_openai_domain_rule in yaml_text:
         yaml_text = yaml_text.replace(first_openai_domain_rule, openai_domain_help + first_openai_domain_rule, 1)
+    first_operator_proxy_domain_rule = "- DOMAIN-SUFFIX,qq.pw,PROXY"
+    if first_operator_proxy_domain_rule in yaml_text:
+        yaml_text = yaml_text.replace(
+            first_operator_proxy_domain_rule,
+            operator_proxy_domain_help + first_operator_proxy_domain_rule,
+            1,
+        )
     first_chatgpt_process_rule = "- PROCESS-NAME,ChatGPT.exe,ChatGPT"
     if first_chatgpt_process_rule in yaml_text:
         yaml_text = yaml_text.replace(
@@ -1055,6 +1075,10 @@ def mihomo_mirror_direct_rules() -> list[str]:
 
 def mihomo_openai_domain_proxy_rules() -> list[str]:
     return [f"DOMAIN-SUFFIX,{domain},ChatGPT" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES]
+
+
+def mihomo_operator_proxy_domain_rules() -> list[str]:
+    return [f"DOMAIN-SUFFIX,{domain},PROXY" for domain in OPERATOR_PROXY_DOMAIN_SUFFIXES]
 
 
 def mihomo_chatgpt_webrtc_domain_rules() -> list[str]:
@@ -1258,6 +1282,8 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_openai_domain_proxy_rules(),
             *mihomo_chatgpt_webrtc_domain_rules(),
             *mihomo_chatgpt_probe_domain_rules(),
+            # qq.pw before WPS/domestic DIRECT and before ssh.exe DIRECT.
+            *mihomo_operator_proxy_domain_rules(),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_domestic_platform_direct_rules(),
             *mihomo_mirror_direct_rules(),
@@ -2364,7 +2390,12 @@ Generated for the GG proxy subscription service.
 - WPS Office, cloud sync (`wpscloudsvr.exe`), and update helpers are also protected by DIRECT process/path rules on Windows.
 - Domestic APT and container registry mirrors are DIRECT and exempt from fake-ip so WSL apt/podman and local package workflows resolve real addresses. Covered suffixes: {", ".join(f"`{domain}`" for domain in MIRROR_DIRECT_DOMAIN_SUFFIXES)}.
 - Domestic platform domains are DIRECT and exempt from fake-ip so SSH/Git to self-hosted services resolve real addresses. Covered suffixes: {", ".join(f"`{domain}`" for domain in DOMESTIC_PLATFORM_DIRECT_DOMAIN_SUFFIXES)}.
-- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations.
+- Operator NAT domains use PROXY and keep fake-ip (not listed in fake-ip-filter). Covered suffixes: {", ".join(f"`{domain}`" for domain in OPERATOR_PROXY_DOMAIN_SUFFIXES)}. These DOMAIN-SUFFIX PROXY rules are evaluated before `ssh`/`git` process DIRECT rules.
+- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations, except when a higher-priority operator PROXY domain rule matches (e.g. `nat.qq.pw`).
+
+## Operator PROXY domain rules (fake-ip kept)
+
+{chr(10).join(f"- `DOMAIN-SUFFIX,{domain},PROXY`" for domain in OPERATOR_PROXY_DOMAIN_SUFFIXES)}
 
 ## Domestic platform DIRECT rules
 

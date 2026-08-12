@@ -30,7 +30,12 @@ Generated for the GG proxy subscription service.
 - WPS Office, cloud sync (`wpscloudsvr.exe`), and update helpers are also protected by DIRECT process/path rules on Windows.
 - Domestic APT and container registry mirrors are DIRECT and exempt from fake-ip so WSL apt/podman and local package workflows resolve real addresses. Covered suffixes: `mirrors.tuna.tsinghua.edu.cn`, `deb.debian.org`, `security.debian.org`, `ftp.debian.org`, `mirrors.aliyun.com`, `mirrors.ustc.edu.cn`, `mirrors.huaweicloud.com`, `mirrors.cloud.tencent.com`, `mirror.nju.edu.cn`, `mirrors.163.com`, `docker.m.daocloud.io`, `daocloud.io`.
 - Domestic platform domains are DIRECT and exempt from fake-ip so SSH/Git to self-hosted services resolve real addresses. Covered suffixes: `gglohh.top`, `ringzle.com`.
-- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations.
+- Operator NAT domains use PROXY and keep fake-ip (not listed in fake-ip-filter). Covered suffixes: `qq.pw`. These DOMAIN-SUFFIX PROXY rules are evaluated before `ssh`/`git` process DIRECT rules.
+- `ssh` / `git` processes are DIRECT on all platforms so Git-over-SSH and shell access do not break on fake-ip destinations, except when a higher-priority operator PROXY domain rule matches (e.g. `nat.qq.pw`).
+
+## Operator PROXY domain rules (fake-ip kept)
+
+- `DOMAIN-SUFFIX,qq.pw,PROXY`
 
 ## Domestic platform DIRECT rules
 

@@ -173,6 +173,32 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,ringzle.com,DIRECT"), mihomo.index("RULE-SET,proxy,PROXY"))
         self.assertLess(mihomo.index("DOMAIN-SUFFIX,ringzle.com,DIRECT"), mihomo.index("RULE-SET,gfw,PROXY"))
 
+    def test_mihomo_profile_routes_qq_pw_via_proxy_with_fake_ip(self) -> None:
+        render_artifacts = load_module()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = copy_fixture(Path(tmp))
+            render_artifacts.write_generated_artifacts(repo_root)
+
+            mihomo = (repo_root / "generated" / "subscriptions" / "mihomo-universal.yaml").read_text(encoding="utf-8")
+            notes = (repo_root / "generated" / "subscriptions" / "mihomo-process-routing.md").read_text(encoding="utf-8")
+
+        self.assertIn("DOMAIN-SUFFIX,qq.pw,PROXY", mihomo)
+        self.assertIn("enhanced-mode: fake-ip", mihomo)
+        # qq.pw must keep fake-ip: never appear in fake-ip-filter patterns.
+        fake_ip_filter = mihomo.split("fake-ip-filter:", 1)[1].split("default-nameserver:", 1)[0]
+        self.assertNotIn("qq.pw", fake_ip_filter)
+        # Beat ssh.exe DIRECT and CN ruleset so nat.qq.pw SSH follows PROXY.
+        qq_pw_rule = "- DOMAIN-SUFFIX,qq.pw,PROXY"
+        ssh_direct_rule = "- PROCESS-NAME,ssh.exe,DIRECT"
+        cn_rule = "- RULE-SET,cn,DIRECT"
+        proxy_ruleset = "- RULE-SET,proxy,PROXY"
+        self.assertLess(mihomo.index(qq_pw_rule), mihomo.index(ssh_direct_rule))
+        self.assertLess(mihomo.index(qq_pw_rule), mihomo.index(cn_rule))
+        self.assertLess(mihomo.index(qq_pw_rule), mihomo.index(proxy_ruleset))
+        self.assertIn("DOMAIN-SUFFIX,qq.pw,PROXY", notes)
+        self.assertIn("fake-ip", notes)
+
     def test_mihomo_profile_keeps_mirror_domains_direct_and_exempt_from_fake_ip(self) -> None:
         render_artifacts = load_module()
 
