@@ -19,14 +19,14 @@
       "sha256": "1f336f1a37f6d0fa5017412d507066cba463254de8fff145fb1366104126babc"
     },
     {
-      "bytes": 12071,
+      "bytes": 12065,
       "path": "generated/subscriptions/mihomo-process-routing.md",
-      "sha256": "58aac4e9fe45f75933f69f5a2a5363e7cb6c02edb66987e62d40b777ad9968ab"
+      "sha256": "b3f4728b272290322f89d8be72706ee9bd2296d969d4e04b3df93e76c7ce8d1e"
     },
     {
-      "bytes": 18099,
+      "bytes": 18109,
       "path": "generated/subscriptions/mihomo-universal.yaml",
-      "sha256": "ae74fe9fb940778ca9dff7870f7fcde86df851ce2b6e639959719029d455d764"
+      "sha256": "19968778e5c08ccc6a43a4fa708ccefa1b5906fe1974e5e49e4d57d78902528d"
     },
     {
       "bytes": 329,

@@ -275,6 +275,9 @@ class SingboxProfileRenderTests(unittest.TestCase):
         self.assertIn("dns-query#ChatGPT", mihomo)
         self.assertNotIn("PROCESS-NAME,msedge.exe,ChatGPT", mihomo)
         self.assertNotIn("PROCESS-NAME,chrome.exe,ChatGPT", mihomo)
+        self.assertIn("PROCESS-NAME,simprint.exe,ChatGPT", mihomo)
+        self.assertIn("PROCESS-NAME,simprint-runtime.exe,ChatGPT", mihomo)
+        self.assertIn("PROCESS-NAME,chrome_proxy.exe,ChatGPT", mihomo)
         self.assertIn("RULE-SET,cn,DIRECT", mihomo)
         self.assertLess(
             mihomo.index("DOMAIN-SUFFIX,openai.com,ChatGPT"),
@@ -282,6 +285,11 @@ class SingboxProfileRenderTests(unittest.TestCase):
         )
         self.assertLess(
             mihomo.index("DOMAIN-SUFFIX,stun.l.google.com,ChatGPT"),
+            mihomo.index("RULE-SET,cn,DIRECT"),
+        )
+        # Simprint must beat CN DIRECT so all in-browser Simprint traffic uses ChatGPT.
+        self.assertLess(
+            mihomo.index("PROCESS-NAME,simprint.exe,ChatGPT"),
             mihomo.index("RULE-SET,cn,DIRECT"),
         )
         # Old alias bug: QQPW Reality must never share the public VLESS port.

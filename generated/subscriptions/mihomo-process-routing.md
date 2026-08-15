@@ -13,7 +13,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic.
+- ChatGPT desktop and the entire Simprint browser stack (`simprint.exe`, `simprint-runtime.exe`, `chrome_proxy.exe`, `C:\Users\*\Simprint\*`, `C:\Users\*\AppData\Local\Simprint\*`) are process-routed to `ChatGPT` **before** CN DIRECT, so all Simprint traffic uses QQPW. Whole system browsers (Edge/Chrome) are not process-bound.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: `openai.com`, `chatgpt.com`, `oaistatic.com`, `oaiusercontent.com`, `oaistatsig.com`, `auth.openai.com`, `auth0.openai.com`, `cdn.openaimerge.com`.
 - WebRTC/STUN domains also use `ChatGPT` so browser WebRTC on ChatGPT pages matches the QQPW exit: `stun.l.google.com`, `stun1.l.google.com`, `stun2.l.google.com`, `stun3.l.google.com`, `stun4.l.google.com`, `stun.cloudflare.com`, `global.stun.twilio.com`, `stun.services.mozilla.com`.
 - Operator probe hosts use `ChatGPT`: `ip.net.coffee` (dns/webrtc/gpt checks).
@@ -82,15 +82,14 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `ChatGPT.exe`
 - `ChatGPT Atlas.exe`
 - `ChatGPTAtlas.exe`
+- `simprint.exe`
+- `simprint-runtime.exe`
+- `chrome_proxy.exe`
 
 ### ChatGPT process paths (browser fingerprint)
 
-- `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe`
-- `C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe`
-- `C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe`
-- `C:\Users\*\AppData\Local\Simprint\*\msedgewebview2.exe`
-- `C:\Users\*\AppData\Local\Simprint\*\*\msedgewebview2.exe`
-- `C:\Users\*\AppData\Local\Simprint\*\*\*\msedgewebview2.exe`
+- `C:\Users\*\Simprint\*`
+- `C:\Users\*\AppData\Local\Simprint\*`
 - `C:\Program Files\OpenAI\ChatGPT\*`
 - `C:\Users\*\AppData\Local\Programs\ChatGPT\*`
 - `C:\Program Files\OpenAI\ChatGPT Atlas\*`
@@ -172,6 +171,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `ChatGPT Atlas Helper`
 - `ChatGPTAtlas`
 - `ChatGPTAtlas Helper`
+- `Simprint`
+- `simprint`
 
 ### ChatGPT process paths (browser fingerprint)
 
@@ -179,6 +180,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `/Applications/ChatGPT Atlas.app/Contents/*`
 - `/Users/*/Applications/ChatGPT.app/Contents/*`
 - `/Users/*/Applications/ChatGPT Atlas.app/Contents/*`
+- `/Applications/Simprint.app/Contents/*`
+- `/Users/*/Applications/Simprint.app/Contents/*`
 
 ### DIRECT process names
 
@@ -240,6 +243,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `chatgpt`
 - `chatgpt-atlas`
 - `chatgptatlas`
+- `simprint`
+- `simprint-runtime`
 
 ### ChatGPT process paths (browser fingerprint)
 
@@ -248,6 +253,8 @@ Private and mainland China direct guardrails are evaluated before proxy rules. T
 - `/opt/chatgpt-atlas/*`
 - `/usr/bin/chatgpt-atlas*`
 - `/usr/bin/chatgptatlas*`
+- `/opt/simprint/*`
+- `/usr/bin/simprint*`
 
 ### DIRECT process names
 

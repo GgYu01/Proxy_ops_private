@@ -132,15 +132,17 @@ PRE_DOMAIN_DIRECT_PROCESS_PATHS_BY_PLATFORM = {
     "linux": [],
 }
 
-# Only ChatGPT-family / fingerprint tooling processes go to ChatGPT.
-# Do NOT bind whole browsers (msedge/chrome) here — that burns residential
-# traffic on unrelated downloads (FPGA, Bing, etc.). OpenAI destinations use
-# domain rules; other browser traffic follows CN DIRECT / PROXY / MATCH.
+# ChatGPT desktop + entire Simprint browser stack go to ChatGPT.
+# Do NOT bind whole system browsers (msedge/chrome) here — that burns
+# residential traffic on unrelated downloads (FPGA, Bing, etc.).
 CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
     "windows": [
         "ChatGPT.exe",
         "ChatGPT Atlas.exe",
         "ChatGPTAtlas.exe",
+        "simprint.exe",
+        "simprint-runtime.exe",
+        "chrome_proxy.exe",
     ],
     "macos": [
         "ChatGPT",
@@ -149,22 +151,23 @@ CHATGPT_PROCESS_NAMES_BY_PLATFORM = {
         "ChatGPT Atlas Helper",
         "ChatGPTAtlas",
         "ChatGPTAtlas Helper",
+        "Simprint",
+        "simprint",
     ],
     "linux": [
         "chatgpt",
         "chatgpt-atlas",
         "chatgptatlas",
+        "simprint",
+        "simprint-runtime",
     ],
 }
 
 CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
     "windows": [
-        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe",
-        r"C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\simprint.exe",
-        r"C:\Users\*\Simprint\webview-fixed\*\msedgewebview2.exe",
-        r"C:\Users\*\AppData\Local\Simprint\*\msedgewebview2.exe",
-        r"C:\Users\*\AppData\Local\Simprint\*\*\msedgewebview2.exe",
-        r"C:\Users\*\AppData\Local\Simprint\*\*\*\msedgewebview2.exe",
+        # Entire Simprint install + profile Chromium tree (all browser traffic).
+        r"C:\Users\*\Simprint\*",
+        r"C:\Users\*\AppData\Local\Simprint\*",
         r"C:\Program Files\OpenAI\ChatGPT\*",
         r"C:\Users\*\AppData\Local\Programs\ChatGPT\*",
         r"C:\Program Files\OpenAI\ChatGPT Atlas\*",
@@ -175,6 +178,8 @@ CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
         "/Applications/ChatGPT Atlas.app/Contents/*",
         "/Users/*/Applications/ChatGPT.app/Contents/*",
         "/Users/*/Applications/ChatGPT Atlas.app/Contents/*",
+        "/Applications/Simprint.app/Contents/*",
+        "/Users/*/Applications/Simprint.app/Contents/*",
     ],
     "linux": [
         "/opt/chatgpt/*",
@@ -182,6 +187,8 @@ CHATGPT_PROCESS_PATHS_BY_PLATFORM = {
         "/opt/chatgpt-atlas/*",
         "/usr/bin/chatgpt-atlas*",
         "/usr/bin/chatgptatlas*",
+        "/opt/simprint/*",
+        "/usr/bin/simprint*",
     ],
 }
 
@@ -902,12 +909,12 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
 # OpenAI/ChatGPT domain and browser fingerprint ChatGPT-group rules.
 # === END HIGHEST PRIORITY PROCESS DIRECT EXCEPTIONS ===
 """
-    chatgpt_process_help = """# === ChatGPT APP / FINGERPRINT-TOOL PROCESS RULES ===
-# Only ChatGPT desktop and Simprint fingerprint tooling are process-routed
-# to ChatGPT. Whole browsers (Edge/Chrome) are NOT bound here — otherwise
-# unrelated downloads (FPGA, Bing, etc.) burn QQPW residential traffic.
-# OpenAI-family sites still use DOMAIN → ChatGPT rules above.
-# === END ChatGPT APP / FINGERPRINT-TOOL PROCESS RULES ===
+    chatgpt_process_help = """# === ChatGPT APP / SIMPRINT PROCESS RULES ===
+# ChatGPT desktop and the entire Simprint browser stack (simprint.exe,
+# simprint-runtime.exe, profile chrome_proxy.exe, install trees) are forced
+# through ChatGPT before CN DIRECT, so all Simprint traffic uses QQPW.
+# Whole system browsers (Edge/Chrome) are NOT bound here.
+# === END ChatGPT APP / SIMPRINT PROCESS RULES ===
 """
     wps_domain_help = """# === WPS / KINGSOFT DOMAIN DIRECT PROTECTIONS ===
 # WPS Office and Kingsoft domains are matched before process rules so WPS
@@ -960,7 +967,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
             1,
         )
     else:
-        first_chatgpt_process_rule = "- PROCESS-NAME,ChatGPT,ChatGPT"
+        first_chatgpt_process_rule = "- PROCESS-NAME,simprint.exe,ChatGPT"
         if first_chatgpt_process_rule in yaml_text:
             yaml_text = yaml_text.replace(
                 first_chatgpt_process_rule,
@@ -968,7 +975,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
                 1,
             )
         else:
-            first_chatgpt_process_rule = "- PROCESS-NAME,chatgpt,ChatGPT"
+            first_chatgpt_process_rule = "- PROCESS-NAME,ChatGPT,ChatGPT"
             if first_chatgpt_process_rule in yaml_text:
                 yaml_text = yaml_text.replace(
                     first_chatgpt_process_rule,
@@ -977,7 +984,7 @@ def annotate_mihomo_rules_yaml(yaml_text: str) -> str:
                 )
             else:
                 first_chatgpt_path_rule = (
-                    r"- PROCESS-PATH-WILDCARD,C:\Users\*\AppData\Local\Simprint\data\profiles\Chrome *\chrome_proxy.exe,ChatGPT"
+                    r"- PROCESS-PATH-WILDCARD,C:\Users\*\Simprint\*,ChatGPT"
                 )
                 if first_chatgpt_path_rule in yaml_text:
                     yaml_text = yaml_text.replace(
@@ -1284,6 +1291,9 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             *mihomo_chatgpt_probe_domain_rules(),
             # qq.pw before WPS/domestic DIRECT and before ssh.exe DIRECT.
             *mihomo_operator_proxy_domain_rules(),
+            # Simprint + ChatGPT desktop before CN DIRECT so all Simprint
+            # browser traffic (including CN sites) stays on ChatGPT/QQPW.
+            *mihomo_chatgpt_process_rules(platform),
             *mihomo_wps_domain_direct_rules(),
             *mihomo_domestic_platform_direct_rules(),
             *mihomo_mirror_direct_rules(),
@@ -1294,8 +1304,6 @@ def render_mihomo_config(repo_root: Path = REPO_ROOT, *, platform: str) -> str:
             "RULE-SET,google-cn,DIRECT",
             "RULE-SET,cn,DIRECT",
             "RULE-SET,cnip,DIRECT,no-resolve",
-            # ChatGPT desktop / Simprint only — not whole Edge/Chrome browsers.
-            *mihomo_chatgpt_process_rules(platform),
             *mihomo_direct_process_rules(platform),
             *mihomo_proxy_process_rules(platform),
             "RULE-SET,telegramip,PROXY,no-resolve",
@@ -2373,7 +2381,7 @@ Generated for the GG proxy subscription service.
 ## Evidence and assumptions
 
 - Local Windows evidence on this workstation showed multiple `Codex.exe` desktop processes and multiple `codex.exe` CLI helper processes under the OpenAI Codex app package and user-local Codex bin directory.
-- ChatGPT desktop / Simprint fingerprint tooling can be process-routed to the `ChatGPT` group. Whole browsers (Edge/Chrome) are not process-bound, so unrelated Edge downloads (FPGA, Bing, etc.) follow CN DIRECT / PROXY / MATCH instead of burning QQPW residential traffic.
+- ChatGPT desktop and the entire Simprint browser stack (`simprint.exe`, `simprint-runtime.exe`, `chrome_proxy.exe`, `C:\\Users\\*\\Simprint\\*`, `C:\\Users\\*\\AppData\\Local\\Simprint\\*`) are process-routed to `ChatGPT` **before** CN DIRECT, so all Simprint traffic uses QQPW. Whole system browsers (Edge/Chrome) are not process-bound.
 - Official OpenAI / ChatGPT / Codex domains are high-priority `ChatGPT` group rules: {", ".join(f"`{domain}`" for domain in OPENAI_PROXY_DOMAIN_SUFFIXES)}.
 - WebRTC/STUN domains also use `ChatGPT` so browser WebRTC on ChatGPT pages matches the QQPW exit: {", ".join(f"`{domain}`" for domain in CHATGPT_WEBRTC_DOMAIN_SUFFIXES)}.
 - Operator probe hosts use `ChatGPT`: {", ".join(f"`{domain}`" for domain in CHATGPT_PROBE_DOMAIN_SUFFIXES)} (dns/webrtc/gpt checks).
